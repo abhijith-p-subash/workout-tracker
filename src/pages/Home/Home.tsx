@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   IonContent,
   IonPage,
@@ -13,88 +13,147 @@ import {
   IonRow,
   IonCol,
   IonAlert,
-  IonInput,
-  IonFabList,
   IonModal,
   IonButton,
-  IonActionSheet,
   IonButtons,
   IonToolbar,
   IonHeader,
   IonList,
-  IonCardHeader,
-  IonCardSubtitle,
-  IonCardTitle,
   IonPopover,
   IonSelect,
   IonSelectOption,
+  IonToast,
 } from "@ionic/react";
 
 import {
   add,
-  barbell,
   ellipsisVertical,
   close,
-  closeCircle,
   refresh,
   trashOutline,
-  logoYoutube,
   informationCircleOutline,
 } from "ionicons/icons";
 
-import {auth} from "../../firebase/FireBase-config"
+import { auth } from "../../firebase/FireBase-config";
 
 import { IoAddSharp, IoClose } from "react-icons/io5";
 import Header from "../../components/Header/Header";
+import Loader from "../../components/Loader/Loader";
 import { wrkouts } from "../../assets/data/seed";
-import { MyWorkOut } from "../../Models/Models";
-import { createDoc, createDocCustomID, getAll,getById } from "../../firebase/FireBase-services";
+import { MyWorkOut, Res } from "../../Models/Models";
+import {
+  createDoc,
+  createDocCustomID,
+  getAll,
+  getById,
+  getWithQuery,
+  update,
+} from "../../firebase/FireBase-services";
+import { Job } from "../../Job/Job";
+import moment from "moment";
 import "./Home.css";
 
-const myWrkOut: MyWorkOut[] = [];
-const mySet:{weight:number,rep:number}[] =[];
+let myWrkOut: MyWorkOut[] = [];
+const mySet: { weight: number; rep: number }[] = [];
 
 const Home: React.FC = () => {
+  // const [myWorkOut, setMyWorkOut] = useState<MyWorkOut[]>([]);
   const [addBtn, setAddBtn] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showActionSheet, setShowActionSheet] = useState(false);
   const [wrkout, setWrkOut] = useState({ bodyPart: "", wrkout: "" });
-  const [dataToAlert, setDataToAlert] = useState({ bodyPart: "", wrkout: "" });
+  const [dataToAlert, setDataToAlert] = useState<MyWorkOut>();
+  const [showToast, setShowToast] = useState({
+    show: false,
+    msg: "",
+    color: "",
+  });
+  const [showLoader, setShowLoader] = useState({ show: false, msg: "" || {} });
+
+  useEffect(() => {
+    // getWithQuery("myWorkOut", "dsd").then((data) => {}).catch((err) => {})
+    getData();
+  }, []);
+
+  const getData = async () => {
+    myWrkOut = [];
+    setShowLoader({ show: true, msg: "Loading..." });
+    const res:Res = await getAll("myWorkOut");
+    if (res.error) {
+      const err = JSON.parse(JSON.stringify(res.data));
+      setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
+      setShowLoader({ show: false, msg: "" });
+    } else {
+      res.data.forEach((doc: MyWorkOut, index:number) => {
+        console.log(doc);
+        myWrkOut.push(doc);
+      });
+      // myWrkOut.push({ bodyPart: bodyPart, workout: event.target.value, set: [] });
+      setShowModal(false);
+      setShowToast({ show: true, msg: "Workout Added", color: "success" });
+      setShowLoader({ show: false, msg: "" });
+    }
+
+  }
 
   const addWrkOut = async () => {
-    // setAddBtn(!addBtn);
-    // setShowActionSheet(!showActionSheet);
     setShowModal(!showModal);
-    console.log( auth.currentUser);
-    const user = await getAll("users");
-    console.log(user);
-
-//const cuId = await createDocCustomID("leg", "exercises",{ workOuts:["leg 01"]});
-
-
   };
 
-  const addWrkOutData = (data:any) => {
+  const addWrkOutData = (data: MyWorkOut) => {
     setDataToAlert(data);
     setShowAlert(!showAlert);
+    console.log(dataToAlert);
+    
   };
 
   const modalClick = (item: string, index: number) => {
     console.log(item, index);
   };
 
-  const selectWrkOut = (event: any, bodyPart: string, partIndex: number) => {
-    console.log(event);
-    console.log(event.target.value, bodyPart, partIndex);
-    myWrkOut.push({ bodyPart: bodyPart, wrkout: event.target.value, set:[] });
-    setShowModal(false);
-    console.log(myWrkOut);
+  const selectWrkOut = async (
+    event: any,
+    bodyPart: string,
+    partIndex: number
+  ) => {
+    setShowLoader({ show: true, msg: "Loading..." });
+    let workout: MyWorkOut = {} as MyWorkOut,
+      user = auth.currentUser;
+
+    workout.uid = user?.uid;
+    workout.bodyPart = `${bodyPart}`;
+    workout.workout = event.target.value;
+    workout.set = [];
+    workout.createdAt = moment().format("L");
+
+    const res = await createDoc("myWorkOut", workout);
+
+    if (res.error) {
+      const err = JSON.parse(JSON.stringify(res.data));
+      setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
+      setShowLoader({ show: false, msg: "" });
+    } else {
+      console.log(event.target.value, bodyPart, partIndex);
+      // myWrkOut.push({ bodyPart: bodyPart, workout: event.target.value, set: [] });
+      setShowModal(false);
+      getData();
+      setShowToast({ show: true, msg: "Workout Added", color: "success" });
+      setShowLoader({ show: false, msg: "" });
+    }
   };
 
   return (
     <IonPage id="main">
       <Header title="Home" />
+      <IonToast
+        isOpen={showToast.show}
+        onDidDismiss={() => setShowToast({ show: false, msg: "", color: "" })}
+        message={showToast.msg}
+        duration={1000}
+        color={showToast.color}
+      />
+      <Loader open={showLoader.show} msg={showLoader.msg} />
       <IonContent className="content" fullscreen>
         {/* ****************MODAL **************************/}
         <IonModal isOpen={showModal}>
@@ -141,8 +200,8 @@ const Home: React.FC = () => {
             setAddBtn(false);
           }}
           cssClass="my-custom-class"
-          header={`${dataToAlert.wrkout}`}
-          subHeader={`${dataToAlert.bodyPart}`}
+          header={`${dataToAlert?.workout}`}
+          subHeader={`${dataToAlert?.bodyPart}`}
           inputs={[
             {
               name: "weight",
@@ -174,7 +233,11 @@ const Home: React.FC = () => {
                 console.log("Confirm Okay");
                 console.log(data);
                 mySet.push(data);
-                let obj = myWrkOut.find(res => (res.bodyPart === dataToAlert.bodyPart && res.wrkout === dataToAlert.wrkout));
+                let obj = myWrkOut.find(
+                  (res) =>
+                    res.bodyPart === dataToAlert?.bodyPart &&
+                    res.workout === dataToAlert?.workout 
+                );
                 obj?.set.push(data);
                 console.log(obj);
               },
@@ -186,7 +249,7 @@ const Home: React.FC = () => {
         {/* ****************POPOVER **************************/}
         {myWrkOut.map((item, index) => (
           <IonPopover
-            trigger={item.bodyPart + item.wrkout}
+            trigger={item.id}
             dismissOnSelect={true}
           >
             <IonContent>
@@ -212,7 +275,7 @@ const Home: React.FC = () => {
           {myWrkOut.map((item, index) => (
             <IonCard className="ion-margin-vertical">
               <IonItem className="ion-activated">
-                <IonLabel color="primary">{item.wrkout}</IonLabel>
+                <IonLabel color="primary">{item.workout}</IonLabel>
                 <IonLabel
                   className="ion-text-uppercase"
                   slot="end"
@@ -221,7 +284,7 @@ const Home: React.FC = () => {
                   {item.bodyPart}
                 </IonLabel>
                 <IonButtons slot="end">
-                  <IonButton id={item.bodyPart + item.wrkout}>
+                  <IonButton id={item.id}>
                     <IonIcon color="medium" icon={ellipsisVertical}></IonIcon>
                   </IonButton>
                 </IonButtons>
@@ -229,13 +292,14 @@ const Home: React.FC = () => {
               <IonCardContent className="ion-justify-content-center">
                 <IonRow>
                   {item.set.map((item, index) => (
-                     <IonCol>
-                     <div>
-                       <h4 style={{fontWeight:"bold"}}>SET {index+1}</h4>
-                       <h6>{item.weight} Kg</h6>
-                       <h6>{item.rep} Rep</h6>
-                     </div>
-                   </IonCol>))}
+                    <IonCol>
+                      <div>
+                        <h4 style={{ fontWeight: "bold" }}>SET {index + 1}</h4>
+                        <h6>{item.weight} Kg</h6>
+                        <h6>{item.rep} Rep</h6>
+                      </div>
+                    </IonCol>
+                  ))}
                 </IonRow>
 
                 <IonRow className="ion-float-right">

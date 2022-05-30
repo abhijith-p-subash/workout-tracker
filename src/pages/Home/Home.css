@@ -1,0 +1,27 @@
+.content {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.addButton {
+  position: absolute;
+  width: 60%;
+  bottom: 10%;
+}
+
+.wrk-list {
+  width: 100%;
+  height: 100%;
+  margin-top: 10px;
+
+}
+
+.wrk-list .Td {
+  padding-left: 10px;
+}
+.IonItem {
+  background-color: #063bda;
+  color: #063bda;
+
+}

@@ -43,3 +43,9 @@ export interface Res{
     error?:boolean,
     data?:any
 }
+
+export interface Filter{
+    field?:string | any,
+    operator?:string | any,
+    value?:any
+}

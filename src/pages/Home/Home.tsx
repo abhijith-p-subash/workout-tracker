@@ -23,6 +23,8 @@ import {
   IonSelect,
   IonSelectOption,
   IonToast,
+  useIonViewDidEnter,
+  useIonViewWillEnter
 } from "@ionic/react";
 
 import {
@@ -35,12 +37,13 @@ import {
 } from "ionicons/icons";
 
 import { auth } from "../../firebase/FireBase-config";
+import { useHistory } from "react-router";
 
 import { IoAddSharp, IoClose } from "react-icons/io5";
 import Header from "../../components/Header/Header";
 import Loader from "../../components/Loader/Loader";
 import { wrkouts } from "../../assets/data/seed";
-import { MyWorkOut, Res } from "../../Models/Models";
+import { MyWorkOut, Res, Filter } from "../../Models/Models";
 import {
   createDoc,
   createDocCustomID,
@@ -49,15 +52,18 @@ import {
   getWithQuery,
   update,
 } from "../../firebase/FireBase-services";
-import { Job } from "../../Job/Job";
+import { Job,chunks } from "../../Job/Job";
 import moment from "moment";
 import "./Home.css";
 
+
 let myWrkOut: MyWorkOut[] = [];
+
 const mySet: { weight: number; rep: number }[] = [];
 
 const Home: React.FC = () => {
   // const [myWorkOut, setMyWorkOut] = useState<MyWorkOut[]>([]);
+ 
   const [addBtn, setAddBtn] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -70,26 +76,36 @@ const Home: React.FC = () => {
     color: "",
   });
   const [showLoader, setShowLoader] = useState({ show: false, msg: "" || {} });
+  const history = useHistory();
 
-  useEffect(() => {
-    // getWithQuery("myWorkOut", "dsd").then((data) => {}).catch((err) => {})
-    getData();
+  useIonViewWillEnter(() => {
+     getData();
+    console.log("USE EFFECT IN HOME");
   }, []);
 
   const getData = async () => {
+    const UID = await localStorage.getItem("uid");
+    console.log(UID);
+    
     myWrkOut = [];
+    let filter:Filter[] = [
+      {field:"uid", operator:"==", value:auth.currentUser?.uid || localStorage.getItem("uid")},
+      {field:"createdAt", operator:"==", value:moment().format("L")},
+    ];
+   
+
+    console.log(auth.currentUser);
+    console.log(auth.currentUser?.uid);
     setShowLoader({ show: true, msg: "Loading..." });
-    const res:Res = await getAll("myWorkOut");
+    const res:Res = await getWithQuery("myWorkOut", filter);
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
       setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
       setShowLoader({ show: false, msg: "" });
     } else {
       res.data.forEach((doc: MyWorkOut, index:number) => {
-        console.log(doc);
         myWrkOut.push(doc);
       });
-      // myWrkOut.push({ bodyPart: bodyPart, workout: event.target.value, set: [] });
       setShowModal(false);
       setShowToast({ show: true, msg: "Workout Added", color: "success" });
       setShowLoader({ show: false, msg: "" });
@@ -137,7 +153,7 @@ const Home: React.FC = () => {
       console.log(event.target.value, bodyPart, partIndex);
       // myWrkOut.push({ bodyPart: bodyPart, workout: event.target.value, set: [] });
       setShowModal(false);
-      getData();
+      await getData();
       setShowToast({ show: true, msg: "Workout Added", color: "success" });
       setShowLoader({ show: false, msg: "" });
     }
@@ -229,7 +245,7 @@ const Home: React.FC = () => {
             {
               text: "Add",
               id: "confirm-button",
-              handler: (data) => {
+              handler: async (data) => {
                 console.log("Confirm Okay");
                 console.log(data);
                 mySet.push(data);
@@ -238,8 +254,10 @@ const Home: React.FC = () => {
                     res.bodyPart === dataToAlert?.bodyPart &&
                     res.workout === dataToAlert?.workout 
                 );
-                obj?.set.push(data);
+                console.log(dataToAlert?.set);
+                dataToAlert?.set.push(data);
                 console.log(obj);
+                await update("myWorkOut", dataToAlert?.id, dataToAlert);
               },
             },
           ]}
@@ -290,6 +308,7 @@ const Home: React.FC = () => {
                 </IonButtons>
               </IonItem>
               <IonCardContent className="ion-justify-content-center">
+                
                 <IonRow>
                   {item.set.map((item, index) => (
                     <IonCol>

@@ -14,8 +14,9 @@ import {
   updateDoc,
   query,
   where,
+  QueryConstraint,
 } from "firebase/firestore";
-import { GeneralData } from "../Models/Models";
+import { Filter, GeneralData } from "../Models/Models";
 
 export const Login = async (Email: string, Password: any) => {
   try {
@@ -78,21 +79,32 @@ export const getById = async (collectionName: string, id: string) => {
 export const getWithQuery = async (collectionName: string, Where: any) => {
   try {
     let data: GeneralData[] = [];
+    let filter: QueryConstraint[] = [];
+    console.log(Where);
+    Where.forEach((item:Filter)=>{
+       filter.push(where(item?.field, item?.operator, item?.value));
+    });
+
+console.log(filter);
+
+
     const ref = collection(db, collectionName),
-      Query = query(ref, where("age", ">", 25));
+    Query = query(ref, ...filter);
+      // Query = query(ref, where("createdAt", "==", "05/31/2022"), where("uid", "==", "BdfujAkb7rOy6i4Gt6Xr1M8nVAf2"));
     const res = await getDocs(Query);
     res.forEach((doc) => {
       if (doc.exists()) {
         data.push({ ...doc.data(), id: doc.id });
       }
     });
+    console.log(data);
     return { data: data, error: false };
   } catch (error) {
     return { data: error, error: true };
   }
 };
 
-export const update = async (collectionName: string, id: string, updateData: any) => {
+export const update = async (collectionName: string, id: string | any, updateData: any) => {
   try {
     const ref = doc(db, collectionName, id),
       res = await updateDoc(ref, updateData);

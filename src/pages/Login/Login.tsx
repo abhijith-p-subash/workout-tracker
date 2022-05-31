@@ -49,7 +49,9 @@ const Login = () => {
             setShowLoader({ show: true, msg: "Logging in..." });
             console.log("Clicke");
             let logIn = await signInWithEmailAndPassword(auth, loginData.email, loginData.password);
-         
+            localStorage.setItem("uid", logIn.user.uid);
+            localStorage.setItem("accessToken", logIn.user.refreshToken);
+            localStorage.setItem("auth", 'true');
 
             console.log(logIn.user);
             if (logIn.user) {

@@ -16,6 +16,9 @@ const Menu = () => {
     try {
       console.log("sign out");
       const res = await signOut(auth);
+      localStorage.removeItem("uid");
+      localStorage.removeItem("accessToken");
+      localStorage.setItem("auth", 'false');
       history.push("/login");
       console.log(res);
     } catch (error) {

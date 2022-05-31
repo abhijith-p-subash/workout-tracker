@@ -92,8 +92,9 @@ const Register = () => {
       console.log(reg.user);
       if (reg.user) {
         await sendEmailVerification(reg.user);
-        localStorage.setItem("uid", reg?.user.uid);
-        localStorage.setItem("accessToken", "true");
+        // localStorage.setItem("uid", reg?.user.uid);
+        // localStorage.setItem("accessToken", reg?.user.refreshToken);
+        // localStorage.setItem("auth", "true");
         userData ={
           uid: reg.user.uid,
           name: regData.name,

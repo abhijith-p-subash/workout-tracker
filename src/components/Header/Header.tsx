@@ -6,12 +6,6 @@ import {  IonHeader,IonTitle, IonToolbar, IonMenuButton, IonButtons } from '@ion
 const Header = (props: any) => {
   const [showMenu, setShowMenu] = useState(true);
 
-  // if (props.title === "Login" || props.title === "Register") {
-  //   // setShowMenu(false);
-  //   console.log("HEADER", props.title);
-    
-  // }
-
   useEffect(() => {
     if (props.title === "Login" || props.title === "Register") {
       setShowMenu(false);

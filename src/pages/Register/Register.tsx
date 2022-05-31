@@ -35,22 +35,15 @@ const Register = () => {
     msg: "",
     color: "",
   });
-  // const [userData, setUserData] = useState({
-  //   uid:"",
-  //   name:"",
-  //   email:"",
-  // })
+ 
   const [showLoader, setShowLoader] = useState({ show: false, msg: "" });
   const history = useHistory();
 
   const handleChange = (event: any) => {
-    console.log("changed");
-
     setRegData((prevState) => ({
       ...prevState,
       [event.target.name]: event.target.value,
     }));
-    console.log(regData);
   };
   const handleSubmit = async (event: any) => {
     event.preventDefault();
@@ -82,14 +75,12 @@ const Register = () => {
         return;
       }
 
-      console.log("Clicke");
       let reg = await createUserWithEmailAndPassword(
         auth,
         regData.email,
         regData.password
       );
 
-      console.log(reg.user);
       if (reg.user) {
         await sendEmailVerification(reg.user);
         // localStorage.setItem("uid", reg?.user.uid);
@@ -101,12 +92,11 @@ const Register = () => {
           email: regData.email,
         };
 
-        console.log(userData);
+
         const  regUser = createDoc("users", userData);
         alert("Registration Successful");
-        console.log(regUser);
-        
-        
+    
+    
         setShowToast({
           show: true,
           msg: "Registered successfully",
@@ -193,7 +183,6 @@ const Register = () => {
           <IonCol sizeMd="6" offsetMd="3">
             <IonButton
               onClick={() => {
-                console.log("clicef");
                 history.push("/login");
               }}
               className="ion-margin-vertical"

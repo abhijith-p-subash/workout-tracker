@@ -23,7 +23,6 @@ import {
   IonSelect,
   IonSelectOption,
   IonToast,
-  useIonViewDidEnter,
   useIonViewWillEnter
 } from "@ionic/react";
 
@@ -46,9 +45,6 @@ import { wrkouts } from "../../assets/data/seed";
 import { MyWorkOut, Res, Filter } from "../../Models/Models";
 import {
   createDoc,
-  createDocCustomID,
-  getAll,
-  getById,
   getWithQuery,
   update,
 } from "../../firebase/FireBase-services";
@@ -62,13 +58,11 @@ let myWrkOut: MyWorkOut[] = [];
 const mySet: { weight: number; rep: number }[] = [];
 
 const Home: React.FC = () => {
-  // const [myWorkOut, setMyWorkOut] = useState<MyWorkOut[]>([]);
+ 
  
   const [addBtn, setAddBtn] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [showActionSheet, setShowActionSheet] = useState(false);
-  const [wrkout, setWrkOut] = useState({ bodyPart: "", wrkout: "" });
   const [dataToAlert, setDataToAlert] = useState<MyWorkOut>();
   const [showToast, setShowToast] = useState({
     show: false,
@@ -80,12 +74,11 @@ const Home: React.FC = () => {
 
   useIonViewWillEnter(() => {
      getData();
-    console.log("USE EFFECT IN HOME");
   }, []);
 
   const getData = async () => {
     const UID = await localStorage.getItem("uid");
-    console.log(UID);
+
     
     myWrkOut = [];
     let filter:Filter[] = [
@@ -93,9 +86,6 @@ const Home: React.FC = () => {
       {field:"createdAt", operator:"==", value:moment().format("L")},
     ];
    
-
-    console.log(auth.currentUser);
-    console.log(auth.currentUser?.uid);
     setShowLoader({ show: true, msg: "Loading..." });
     const res:Res = await getWithQuery("myWorkOut", filter);
     if (res.error) {
@@ -119,14 +109,10 @@ const Home: React.FC = () => {
 
   const addWrkOutData = (data: MyWorkOut) => {
     setDataToAlert(data);
-    setShowAlert(!showAlert);
-    console.log(dataToAlert);
-    
+    setShowAlert(!showAlert);  
   };
 
-  const modalClick = (item: string, index: number) => {
-    console.log(item, index);
-  };
+  
 
   const selectWrkOut = async (
     event: any,
@@ -150,8 +136,6 @@ const Home: React.FC = () => {
       setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
       setShowLoader({ show: false, msg: "" });
     } else {
-      console.log(event.target.value, bodyPart, partIndex);
-      // myWrkOut.push({ bodyPart: bodyPart, workout: event.target.value, set: [] });
       setShowModal(false);
       await getData();
       setShowToast({ show: true, msg: "Workout Added", color: "success" });
@@ -239,24 +223,19 @@ const Home: React.FC = () => {
               cssClass: "secondary",
               id: "cancel-button",
               handler: (blah) => {
-                console.log("Confirm Cancel: blah");
               },
             },
             {
               text: "Add",
               id: "confirm-button",
               handler: async (data) => {
-                console.log("Confirm Okay");
-                console.log(data);
                 mySet.push(data);
                 let obj = myWrkOut.find(
                   (res) =>
                     res.bodyPart === dataToAlert?.bodyPart &&
                     res.workout === dataToAlert?.workout 
                 );
-                console.log(dataToAlert?.set);
                 dataToAlert?.set.push(data);
-                console.log(obj);
                 await update("myWorkOut", dataToAlert?.id, dataToAlert);
               },
             },

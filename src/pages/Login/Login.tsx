@@ -33,13 +33,10 @@ const Login = () => {
 
 
     const handleChange = (event: any) => {
-        console.log("changed");
-
         setLogindata((prevState) => ({
             ...prevState,
             [event.target.name]: event.target.value,
         }));;
-        console.log(loginData);
     }
 
 
@@ -47,13 +44,10 @@ const Login = () => {
         try {
             event.preventDefault();
             setShowLoader({ show: true, msg: "Logging in..." });
-            console.log("Clicke");
             let logIn = await signInWithEmailAndPassword(auth, loginData.email, loginData.password);
             localStorage.setItem("uid", logIn.user.uid);
             localStorage.setItem("accessToken", logIn.user.refreshToken);
             localStorage.setItem("auth", 'true');
-
-            console.log(logIn.user);
             if (logIn.user) {
                 setShowToast({ show: true, msg: "Logged in successfully", color: "success" });
                 setShowLoader({ show: false, msg: "" });

@@ -53,8 +53,6 @@ export const getAll = async (collectionName: string) => {
   try {
     let data: GeneralData[] = [];
     const res = await getDocs(collection(db, collectionName));
-    console.log(res.empty);
-
     res.forEach((doc) => {
       if (doc.exists()) {
         data.push({ ...doc.data(), id: doc.id });
@@ -80,24 +78,18 @@ export const getWithQuery = async (collectionName: string, Where: any) => {
   try {
     let data: GeneralData[] = [];
     let filter: QueryConstraint[] = [];
-    console.log(Where);
     Where.forEach((item:Filter)=>{
        filter.push(where(item?.field, item?.operator, item?.value));
     });
 
-console.log(filter);
-
-
     const ref = collection(db, collectionName),
     Query = query(ref, ...filter);
-      // Query = query(ref, where("createdAt", "==", "05/31/2022"), where("uid", "==", "BdfujAkb7rOy6i4Gt6Xr1M8nVAf2"));
     const res = await getDocs(Query);
     res.forEach((doc) => {
       if (doc.exists()) {
         data.push({ ...doc.data(), id: doc.id });
       }
     });
-    console.log(data);
     return { data: data, error: false };
   } catch (error) {
     return { data: error, error: true };

@@ -4,7 +4,6 @@ import { IonToast } from '@ionic/react';
 
 const Toast = ({open, msg}:any) => {
     const [showToast, setShowToast] = useState(false);
-    console.log(open);
     return (
         <IonToast
             isOpen={open}

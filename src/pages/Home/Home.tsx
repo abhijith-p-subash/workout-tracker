@@ -24,6 +24,7 @@ import {
   IonSelectOption,
   IonToast,
   useIonViewWillEnter,
+  useIonPopover,
   IonMenuButton,
   IonDatetime,
   IonText
@@ -63,6 +64,7 @@ import "./Home.css";
 
 
 let myWrkOut: MyWorkOut[] = [];
+let dateFilter: string = moment().format();
 
 const mySet: { weight: number; rep: number }[] = [];
 
@@ -72,6 +74,8 @@ const Home: React.FC = () => {
   const [addBtn, setAddBtn] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [calenderCtrl, setCalenderCtrl] = useState(false);
+  const [showAddBtn, setShowAddBtn] = useState(false);
   const [dataToAlert, setDataToAlert] = useState<MyWorkOut>();
   const [showToast, setShowToast] = useState({
     show: false,
@@ -79,28 +83,26 @@ const Home: React.FC = () => {
     color: "",
   });
   const [showLoader, setShowLoader] = useState({ show: false, msg: "" || {} });
-  const [popoverDate, setPopoverDate] = useState('');
+  const [popoverDate, setPopoverDate] = useState(moment().format());
   const history = useHistory();
 
-  const formatDate = (value: string) => {
-    console.log(moment(value).format("YYYY-MM-DD"));
-    
-    return moment(value).format("YYYY-MM-DD");
-  };
+
 
 
   useIonViewWillEnter(() => {
+    console.log("SSSSSSSSS");
+
     getData();
   }, []);
 
+
+
   const getData = async () => {
     const UID = await localStorage.getItem("uid");
-
-
     myWrkOut = [];
     let filter: Filter[] = [
       { field: "uid", operator: "==", value: auth.currentUser?.uid || localStorage.getItem("uid") },
-      { field: "createdAt", operator: "==", value: '05/31/2022' },
+      { field: "createdAt", operator: "==", value: moment(dateFilter).format("L") },
     ];
 
     setShowLoader({ show: true, msg: "Loading..." });
@@ -129,6 +131,21 @@ const Home: React.FC = () => {
     setShowAlert(!showAlert);
   };
 
+  const selectDate = (ev: any) => {
+    setPopoverDate(moment(ev.detail.value!).format());
+    let a = dateFilter;
+    dateFilter = ev.detail.value!;
+    console.log(popoverDate);
+    setCalenderCtrl(true);
+    if (ev.detail.value !== moment().format()) {
+      setShowAddBtn(true);
+      setShowLoader({ show: false, msg: "" });
+    }
+    if (ev.detail.value !== a) {
+      getData();
+    }
+
+  }
 
 
   const selectWrkOut = async (
@@ -144,7 +161,8 @@ const Home: React.FC = () => {
     workout.bodyPart = `${bodyPart}`;
     workout.workout = event.target.value;
     workout.set = [];
-    workout.createdAt = moment().format("L");
+    workout.time = moment(dateFilter).format("LT");
+    workout.createdAt = moment(dateFilter).format("L");
 
     const res = await createDoc("myWorkOut", workout);
 
@@ -170,7 +188,7 @@ const Home: React.FC = () => {
             <IonMenuButton menu='m1'></IonMenuButton>
           </IonButtons>
           <IonButtons slot="end">
-            <IonButton id="open-date-input">
+            <IonButton onClick={() => setCalenderCtrl(false)} id="open-date-input">
               <IonIcon icon={calendarOutline}></IonIcon>
             </IonButton>
           </IonButtons>
@@ -182,14 +200,6 @@ const Home: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-       <IonPopover size="auto" side="left" alignment="center" trigger="open-date-input" showBackdrop={true}>
-          <IonDatetime
-            presentation="date"
-            onIonChange={ev => setPopoverDate(formatDate(ev.detail.value!))}
-          />
-        </IonPopover>
-
-
 
       <IonToast
         isOpen={showToast.show}
@@ -200,6 +210,18 @@ const Home: React.FC = () => {
       />
       <Loader open={showLoader.show} msg={showLoader.msg} />
       <IonContent className="content" fullscreen>
+
+
+        {/* ****************CALENDER POPOVER **************************/}
+        <IonPopover size="auto" side="left" alignment="center" trigger="open-date-input" dismissOnSelect={calenderCtrl} showBackdrop={true}>
+          <IonDatetime
+            presentation="date"
+            onIonChange={(e) => { selectDate(e) }}
+            value={dateFilter}
+          />
+        </IonPopover>
+        {/* ****************CALENDER POPOVER **************************/}
+
         {/* ****************MODAL **************************/}
         <IonModal isOpen={showModal}>
           <IonHeader>
@@ -314,15 +336,7 @@ const Home: React.FC = () => {
         ))}
         {/* ****************POPOVER **************************/}
 
-        <div className="ion-margin ion-justify-content-center">
-          <IonButtons slot="end">
-            {/* <IonItem lines="none">chevronDownOutline,</IonItem> */}
-            <br />
-            <IonButton className="ion-text-center">
-              <IonIcon icon={chevronDownOutline}></IonIcon>
-            </IonButton>
-          </IonButtons>
-        </div>
+
         <div className="note">
           {myWrkOut.map((item, index) => (
             <IonCard className="ion-margin-vertical">
@@ -369,8 +383,9 @@ const Home: React.FC = () => {
           activated={addBtn}
           horizontal="end"
           slot="fixed"
+
         >
-          <IonFabButton onClick={() => addWrkOut()}>
+          <IonFabButton disabled={showAddBtn} onClick={() => addWrkOut()}>
             <IonIcon icon={add} />
           </IonFabButton>
           {/* <IonFabList side="top">

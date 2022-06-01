@@ -30,6 +30,7 @@ export interface MyWorkOut{
     workout:string,
     set:Set[],
     date?:Date,
+    time?:string,
     createdAt?:string,
     updatedAt?:string,
 }

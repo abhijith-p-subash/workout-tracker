@@ -2,7 +2,7 @@ import React from 'react';
 import { IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel, IonBadge } from '@ionic/react';
 import { calendar, personCircle, map, informationCircle } from 'ionicons/icons';
 
-const Tab = () => {
+const Tabs = () => {
   return (
     <IonTabs>
     <IonTabBar slot="bottom">
@@ -31,4 +31,4 @@ const Tab = () => {
   )
 }
 
-export default Tab
+export default Tabs

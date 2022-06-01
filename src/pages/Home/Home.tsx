@@ -23,7 +23,10 @@ import {
   IonSelect,
   IonSelectOption,
   IonToast,
-  useIonViewWillEnter
+  useIonViewWillEnter,
+  IonMenuButton,
+  IonDatetime,
+  IonText
 } from "@ionic/react";
 
 import {
@@ -33,6 +36,10 @@ import {
   refresh,
   trashOutline,
   informationCircleOutline,
+  chevronDownOutline,
+  calendarNumberOutline,
+  calendarOutline,
+  stopwatchOutline
 } from "ionicons/icons";
 
 import { auth } from "../../firebase/FireBase-config";
@@ -41,6 +48,7 @@ import { useHistory } from "react-router";
 import { IoAddSharp, IoClose } from "react-icons/io5";
 import Header from "../../components/Header/Header";
 import Loader from "../../components/Loader/Loader";
+import Tabs from "../../components/Tab/Tab";
 import { wrkouts } from "../../assets/data/seed";
 import { MyWorkOut, Res, Filter } from "../../Models/Models";
 import {
@@ -48,8 +56,9 @@ import {
   getWithQuery,
   update,
 } from "../../firebase/FireBase-services";
-import { Job,chunks } from "../../Job/Job";
+import { Job, chunks } from "../../Job/Job";
 import moment from "moment";
+
 import "./Home.css";
 
 
@@ -58,8 +67,8 @@ let myWrkOut: MyWorkOut[] = [];
 const mySet: { weight: number; rep: number }[] = [];
 
 const Home: React.FC = () => {
- 
- 
+
+
   const [addBtn, setAddBtn] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -70,30 +79,38 @@ const Home: React.FC = () => {
     color: "",
   });
   const [showLoader, setShowLoader] = useState({ show: false, msg: "" || {} });
+  const [popoverDate, setPopoverDate] = useState('');
   const history = useHistory();
 
+  const formatDate = (value: string) => {
+    console.log(moment(value).format("YYYY-MM-DD"));
+    
+    return moment(value).format("YYYY-MM-DD");
+  };
+
+
   useIonViewWillEnter(() => {
-     getData();
+    getData();
   }, []);
 
   const getData = async () => {
     const UID = await localStorage.getItem("uid");
 
-    
+
     myWrkOut = [];
-    let filter:Filter[] = [
-      {field:"uid", operator:"==", value:auth.currentUser?.uid || localStorage.getItem("uid")},
-      {field:"createdAt", operator:"==", value:moment().format("L")},
+    let filter: Filter[] = [
+      { field: "uid", operator: "==", value: auth.currentUser?.uid || localStorage.getItem("uid") },
+      { field: "createdAt", operator: "==", value: '05/31/2022' },
     ];
-   
+
     setShowLoader({ show: true, msg: "Loading..." });
-    const res:Res = await getWithQuery("myWorkOut", filter);
+    const res: Res = await getWithQuery("myWorkOut", filter);
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
       setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
       setShowLoader({ show: false, msg: "" });
     } else {
-      res.data.forEach((doc: MyWorkOut, index:number) => {
+      res.data.forEach((doc: MyWorkOut, index: number) => {
         myWrkOut.push(doc);
       });
       setShowModal(false);
@@ -109,10 +126,10 @@ const Home: React.FC = () => {
 
   const addWrkOutData = (data: MyWorkOut) => {
     setDataToAlert(data);
-    setShowAlert(!showAlert);  
+    setShowAlert(!showAlert);
   };
 
-  
+
 
   const selectWrkOut = async (
     event: any,
@@ -145,7 +162,35 @@ const Home: React.FC = () => {
 
   return (
     <IonPage id="main">
-      <Header title="Home" />
+      {/* <Header title="Home" /> */}
+      <IonHeader>
+        <IonToolbar color='primary'>
+          <IonTitle>Home</IonTitle>
+          <IonButtons slot="start">
+            <IonMenuButton menu='m1'></IonMenuButton>
+          </IonButtons>
+          <IonButtons slot="end">
+            <IonButton id="open-date-input">
+              <IonIcon icon={calendarOutline}></IonIcon>
+            </IonButton>
+          </IonButtons>
+          <IonButtons slot="end">
+            <IonButton>
+              <IonIcon icon={stopwatchOutline}></IonIcon>
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+
+       <IonPopover size="auto" side="left" alignment="center" trigger="open-date-input" showBackdrop={true}>
+          <IonDatetime
+            presentation="date"
+            onIonChange={ev => setPopoverDate(formatDate(ev.detail.value!))}
+          />
+        </IonPopover>
+
+
+
       <IonToast
         isOpen={showToast.show}
         onDidDismiss={() => setShowToast({ show: false, msg: "", color: "" })}
@@ -233,7 +278,7 @@ const Home: React.FC = () => {
                 let obj = myWrkOut.find(
                   (res) =>
                     res.bodyPart === dataToAlert?.bodyPart &&
-                    res.workout === dataToAlert?.workout 
+                    res.workout === dataToAlert?.workout
                 );
                 dataToAlert?.set.push(data);
                 await update("myWorkOut", dataToAlert?.id, dataToAlert);
@@ -268,6 +313,16 @@ const Home: React.FC = () => {
           </IonPopover>
         ))}
         {/* ****************POPOVER **************************/}
+
+        <div className="ion-margin ion-justify-content-center">
+          <IonButtons slot="end">
+            {/* <IonItem lines="none">chevronDownOutline,</IonItem> */}
+            <br />
+            <IonButton className="ion-text-center">
+              <IonIcon icon={chevronDownOutline}></IonIcon>
+            </IonButton>
+          </IonButtons>
+        </div>
         <div className="note">
           {myWrkOut.map((item, index) => (
             <IonCard className="ion-margin-vertical">
@@ -287,7 +342,7 @@ const Home: React.FC = () => {
                 </IonButtons>
               </IonItem>
               <IonCardContent className="ion-justify-content-center">
-                
+
                 <IonRow>
                   {item.set.map((item, index) => (
                     <IonCol>
@@ -323,6 +378,7 @@ const Home: React.FC = () => {
             <IonFabButton color="dark"><IonIcon icon={logoVimeo} /></IonFabButton>
           </IonFabList> */}
         </IonFab>
+        {/* <Tabs/> */}
       </IonContent>
     </IonPage>
   );

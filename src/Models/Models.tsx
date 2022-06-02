@@ -26,12 +26,13 @@ export interface User{
 export interface MyWorkOut{
     id?:string,
     uid?:string,
+    bodyPartID?:string,
     bodyPart:string,
     workout:string,
     set:Set[],
-    date?:Date,
-    time?:string,
-    createdAt?:string,
+    date?:string,
+    time:string,
+    createdAt:string,
     updatedAt?:string,
 }
 
@@ -40,6 +41,17 @@ interface Set{
     rep:number
 }
 
+export interface AllWorkOut{
+    id:string,
+    bodyPart:string,
+    workouts:WorkOut[],
+}
+
+export interface WorkOut{
+    url:string | undefined,
+    name:string | undefined,
+    description:string | undefined,
+}
 export interface Res{
     error?:boolean,
     data?:any

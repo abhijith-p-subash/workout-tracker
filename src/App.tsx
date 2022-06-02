@@ -25,6 +25,7 @@ import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 import Menu from "./components/Menu/Menu";
+import Info from "./pages/Info/Info"
 
 setupIonicReact();
 
@@ -37,6 +38,7 @@ const App: React.FC = () => (
         <Route exact path="/"><Redirect to="/home" /></Route>
         <Route exact path="/login"><Login /></Route>
         <Route exact path="/register"><Register /></Route>
+        <Route exact path="/info/:wrkout/:id"><Info /></Route>
       </IonRouterOutlet>
     </IonReactRouter>
   </IonApp>

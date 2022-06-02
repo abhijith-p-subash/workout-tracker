@@ -12,6 +12,7 @@ import {
   getDocs,
   getDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   QueryConstraint,
@@ -79,12 +80,13 @@ export const getWithQuery = async (collectionName: string, Where: any) => {
   try {
     let data: GeneralData[] = [];
     let filter: QueryConstraint[] = [];
-    Where.forEach((item:Filter)=>{
-       filter.push(where(item?.field, item?.operator, item?.value));
+    Where.forEach((item: Filter) => {
+      filter.push(where(item?.field, item?.operator, item?.value));
     });
 
     const ref = collection(db, collectionName),
-    Query = query(ref, ...filter);
+      Query = query(ref, ...filter,orderBy("createdAt", "desc")); 
+      // orderBy("createdAt", "desc")
     const res = await getDocs(Query);
     res.forEach((doc) => {
       if (doc.exists()) {
@@ -93,6 +95,8 @@ export const getWithQuery = async (collectionName: string, Where: any) => {
     });
     return { data: data, error: false };
   } catch (error) {
+    console.log(error);
+    
     return { data: error, error: true };
   }
 };
@@ -107,4 +111,12 @@ export const update = async (collectionName: string, id: string | any, updateDat
   }
 };
 
-export const deleteOne = async (collectionName: string, id: string) => { };
+export const deleteOne = async (collectionName: string, id: string) => {
+  try {
+    const ref = doc(db, collectionName, id),
+      res = await deleteDoc(ref);
+    return { data: res, error: false };
+  } catch (error) {
+    return { data: error, error: true };
+  }
+ };

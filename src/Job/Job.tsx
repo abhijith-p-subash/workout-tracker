@@ -1,3 +1,6 @@
+import { MyWorkOut } from "../Models/Models";
+import moment from "moment";
+
 export class Job {
     id?: string;
     email?: string;
@@ -29,4 +32,22 @@ export const chunks = (array: any[], size: number) => {
         index += size;
     }
     return chunked_arr;
+}
+
+export const compare = (a:MyWorkOut, b:MyWorkOut) => {
+    // console.log(a);
+    // console.log(b);
+    
+    
+    if (moment(a.createdAt).format() > moment(b.createdAt).format()) {
+        console.log("a is greater");
+        
+        return -1;
+    }
+    if (moment(a.createdAt).format() < moment(b.createdAt).format()) {
+        console.log("b is greater");
+        
+        return 1;
+    }
+    return 0;
 }

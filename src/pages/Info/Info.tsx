@@ -26,11 +26,13 @@ import { arrowBackOutline } from "ionicons/icons";
 import { useHistory, useParams } from "react-router";
 import { AllWorkOut, Res, WorkOut } from "../../Models/Models";
 import { getById } from "../../firebase/FireBase-services";
+import Loader from "../../components/Loader/Loader";
 
 let workoutData: AllWorkOut;
-let workout:WorkOut = {} as WorkOut;
+// let workout:WorkOut = {} as WorkOut;
 
 const Info = () => {
+    const [workout, setWorkout] = useState<WorkOut>({} as WorkOut);
     const [showLoader, setShowLoader] = useState({ show: false, msg: "" || {} });
     const [showToast, setShowToast] = useState({
       show: false,
@@ -43,15 +45,22 @@ const Info = () => {
     console.log(ID.id);
     console.log(ID.wrkout);
 
+    useEffect(() => {
+        getWorkOut(ID);
+    } , []);
+
 
     useIonViewDidEnter(() => {
-       getWorkOut();
+       getWorkOut(ID);
       }, []);
 
+      
+  useIonViewWillEnter(() => {
+    getWorkOut(ID);
+  }, []);
 
 
-    const getWorkOut = async () => {
-        workout = {} as WorkOut;
+    const getWorkOut = async (ID:{id:string, wrkout:string}) => {
         setShowLoader({ show: true, msg: "Loading..." });
         const res:Res = await getById("exercises", ID.id);
         if (res.error) {
@@ -60,21 +69,19 @@ const Info = () => {
           setShowLoader({ show: false, msg: "" });
         } else {
          console.log(res.data.data());
-             search(ID.wrkout, res.data.data().workouts);
-         
-            console.log(workout);
-            
-         
+            await search(ID.wrkout, res.data.data().workouts);
           setShowToast({ show: true, msg: "Workout Added", color: "success" });
           setShowLoader({ show: false, msg: "" });
         }
         
     }
 
-    const search = (nameKey:string, myArray:WorkOut[]) => {
+    const search = async (nameKey:string, myArray:WorkOut[]) => {
         for (var i=0; i < myArray.length; i++) {
             if (myArray[i].name === nameKey) {
-                workout = myArray[i];
+              await setWorkout(myArray[i]);
+              console.log(workout);
+              
             }
         }
     }
@@ -84,11 +91,12 @@ const Info = () => {
         <>
             <IonPage>
                 <IonContent>
+                <Loader open={showLoader.show} msg={showLoader.msg} />
                     <IonHeader>
                         <IonToolbar color="primary">
                             <IonTitle> Info </IonTitle>
                             <IonButtons slot="start">
-                                <IonButton onClick={() => history.push("/home")}>
+                                <IonButton href="/home" onClick={() => {setWorkout({} as WorkOut)}}>
                                     <IonIcon icon={arrowBackOutline}></IonIcon>
                                 </IonButton>
                             </IonButtons>

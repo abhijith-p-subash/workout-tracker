@@ -27,6 +27,9 @@ import Register from "./pages/Register/Register";
 import Menu from "./components/Menu/Menu";
 import Info from "./pages/Info/Info";
 import Profile from "./pages/Profile/Profile";
+import EditProfile from "./pages/EditProfile/EditProfile";
+import Calculator from "./pages/Calculator/Calculator";
+import Progress from "./pages/Progress/Progress";
 
 setupIonicReact();
 
@@ -41,6 +44,9 @@ const App: React.FC = () => (
         <Route exact path="/register"><Register /></Route>
         <Route exact path="/info/:wrkout/:id"><Info /></Route>
         <Route exact path="/profile"><Profile /></Route>
+        <Route exact path="/update-profile/:id"><EditProfile /></Route>
+        <Route exact path="/bmi-calculator"><Calculator /></Route>
+        <Route exact path="/progress"><Progress /></Route>
       </IonRouterOutlet>
     </IonReactRouter>
   </IonApp>

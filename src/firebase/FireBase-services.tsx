@@ -70,7 +70,8 @@ export const getById = async (collectionName: string, id: string) => {
   try {
     let data: GeneralData[] = [];
     const res = await getDoc(doc(db, collectionName, id));
-    return { data: res, error: false };
+    
+    return { data: res.data(), error: false };
   } catch (error) {
     return { data: error, error: true };
   }
@@ -85,7 +86,7 @@ export const getWithQuery = async (collectionName: string, Where: any) => {
     });
 
     const ref = collection(db, collectionName),
-      Query = query(ref, ...filter,orderBy("createdAt", "desc")); 
+      Query = query(ref, ...filter,); 
       // orderBy("createdAt", "desc")
     const res = await getDocs(Query);
     res.forEach((doc) => {

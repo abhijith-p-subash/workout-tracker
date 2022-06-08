@@ -19,8 +19,14 @@ export interface User{
     uid?:string,
     name?:string,
     email?:string,
+    phone?:string,
     age?:number,
-    weight?:number,
+    weight?:string | "0",
+    height?:string | "0",
+    dob?:string,
+    bmi?:string,
+    blood?:string,
+    gender?:string
 }
 
 export interface MyWorkOut{
@@ -36,9 +42,9 @@ export interface MyWorkOut{
     updatedAt?:string,
 }
 
-interface Set{
-    weight:number,
-    rep:number
+export interface Set{
+    weight:string,
+    rep:string,
 }
 
 export interface AllWorkOut{

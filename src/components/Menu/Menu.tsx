@@ -65,23 +65,23 @@ const Menu = () => {
             </IonItem>
           </IonMenuToggle>  
           <IonMenuToggle>
-            <IonItem onClick={() => { history.push("/profile") }}>
+            <IonItem onClick={() => { history.push("/bmi-calculator") }}>
             <IonIcon className=' ion-margin-end' icon={calculator}></IonIcon>
-              <IonLabel>Calculator</IonLabel>
+              <IonLabel>BMI Calculator</IonLabel>
             </IonItem>
           </IonMenuToggle>   
           <IonMenuToggle>
-            <IonItem onClick={() => { history.push("/home") }}>
+            <IonItem onClick={() => { history.push("/progress") }}>
             <IonIcon className=' ion-margin-end' icon={barChart}></IonIcon>
               <IonLabel>My Progress</IonLabel>
             </IonItem>
           </IonMenuToggle>
-          <IonMenuToggle>
+          {/* <IonMenuToggle>
             <IonItem onClick={() => { history.push("/login") }}>
             <IonIcon className=' ion-margin-end' icon={golf}></IonIcon>
               <IonLabel>Set My Goal</IonLabel>
             </IonItem>
-          </IonMenuToggle>
+          </IonMenuToggle> */}
           <IonMenuToggle>
             <IonItem onClick={() => { LogOut() }}>
             <IonIcon className=' ion-margin-end' icon={logOut}></IonIcon>

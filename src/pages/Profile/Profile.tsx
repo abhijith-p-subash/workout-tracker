@@ -1,24 +1,76 @@
-import { IonCol, IonContent, IonPage, IonRow, IonTitle, IonToast, IonAvatar, IonItem, IonLabel, IonCard, IonButton, IonIcon, IonCardContent, IonText, IonSegment, IonSegmentButton, IonButtons, } from '@ionic/react'
+import { IonCol, IonContent, IonPage, IonRow, IonTitle, IonToast, IonAvatar, IonItem, IonLabel, IonCard, IonButton, IonIcon, IonCardContent, IonText, IonSegment, IonSegmentButton, IonButtons, useIonViewWillEnter, IonMenuButton, IonHeader, IonToolbar, } from '@ionic/react'
 import React, { useState } from 'react';
 
 
 import Loader from '../../components/Loader/Loader';
 import Header from '../../components/Header/Header';
+import { auth } from '../../firebase/FireBase-config';
+import { getWithQuery } from "../../firebase/FireBase-services"
 
 import "./Profile.css";
-import { accessibility, barbell, calendarNumber, call, cameraOutline, locationOutline, mail, pencil } from 'ionicons/icons';
+import { accessibility, barbell, bulb, calendarNumber, call, cameraOutline, create, fitness, locationOutline, mail, maleFemale, pencil, sync, water } from 'ionicons/icons';
+import { Filter, GeneralData, Res, User } from '../../Models/Models';
+import { useHistory } from "react-router";
+
+let user: User = {} as User;
+let BMI: any = 0;
 
 const Profile = () => {
   const [showLoader, setShowLoader] = useState({ show: false, msg: "" || {} });
+  const [segment, setSegment] = useState("personal" || undefined);
   const [showToast, setShowToast] = useState({
     show: false,
     msg: "",
     color: "",
   });
+  const history = useHistory();
+
+  useIonViewWillEnter(() => {
+    getUser()
+  }, []);
+
+  const getUser = async () => {
+    setShowLoader({ show: true, msg: "Loading..." });
+    let filter: Filter[] = [
+      { field: "uid", operator: "==", value: auth.currentUser?.uid || localStorage.getItem("uid") },
+    ];
+    const res: Res = await getWithQuery("users", filter);
+
+
+    if (res.error) {
+      const err = JSON.parse(JSON.stringify(res.data));
+      setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
+      setShowLoader({ show: false, msg: "" });
+    } else {
+      res.data.forEach((doc: User, index: number) => {
+        user = { ...doc };
+      });
+      console.log(user);
+      if (user.weight && user.height) {
+        BMI = (parseInt(user.weight) || 0 / (parseInt(user.height) || 0 * parseInt(user.height) || 0)).toFixed(2);
+      }
+
+      // setShowToast({ show: true, msg: "Workout Added", color: "success" });
+      setShowLoader({ show: false, msg: "" });
+    }
+  }
   return (
     <IonPage>
       <IonContent>
-        <Header title={"Profile"} />
+        {/* <Header title={"Profile"} /> */}
+        <IonHeader>
+        <IonToolbar color='primary'>
+          <IonTitle>Profile</IonTitle>
+          <IonButtons slot="start">
+            <IonMenuButton menu='m1'></IonMenuButton>
+          </IonButtons>
+          <IonButtons slot="end">
+            <IonButton onClick={()=> history.push(`/update-profile/${user.id}`)} id="watch">
+              <IonIcon icon={sync}></IonIcon>
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
         <Loader open={showLoader.show} msg={showLoader.msg} />
         <IonToast
           isOpen={showToast.show}
@@ -37,7 +89,7 @@ const Profile = () => {
               </IonButton>
             </div>
             <IonCardContent className='ion-text-center'>
-              <h2>Abhijith P Subash</h2>
+              <h2>{user.name}</h2>
               <IonText color='medium'>
                 <div className='ion-justify-content-center' style={{ display: 'flex' }}>
                   <IonIcon icon={locationOutline} color="medium"></IonIcon>
@@ -46,45 +98,64 @@ const Profile = () => {
               </IonText>
             </IonCardContent>
           </IonCard>
-          {/* 
-          <IonSegment onIonChange={e => console.log('Segment selected', e.detail.value)}>
-          <IonSegmentButton value="friends">
-            <IonLabel>Personal</IonLabel>
-          </IonSegmentButton>
-          <IonSegmentButton value="enemies">
-            <IonLabel>Personal</IonLabel>
-          </IonSegmentButton>
-        </IonSegment> */}
 
-          <IonCard  >
-            <IonCardContent className='ion-text-center'>
+          <IonSegment value={segment} select-on-focus swipeGesture onIonChange={e => { setSegment(`${e.detail.value}`); console.log('Segment selected', e.detail.value) }}>
+            <IonSegmentButton value="personal">
+              <IonLabel>PERSONAL</IonLabel>
+            </IonSegmentButton>
+            <IonSegmentButton value="health">
+              <IonLabel>HEALTH</IonLabel>
+            </IonSegmentButton>
+          </IonSegment>
+          {segment === "personal" &&
+            <div className='ion-margin-vertical'>
               <IonItem >
                 <IonIcon className='ion-margin-horizontal' icon={mail} color="primary"></IonIcon>
-                <IonLabel>abhijith.p.subash@gmail.com</IonLabel>
+                <IonLabel>{user.email ? user.email : "email"}</IonLabel>
               </IonItem>
               <IonItem >
                 <IonIcon className='ion-margin-horizontal' icon={call} color="primary"></IonIcon>
-                <IonLabel>9400895025</IonLabel>
+                <IonLabel>{user.phone ? user.phone : "Phone Number"}</IonLabel>
+              </IonItem>
+              <IonItem >
+                <IonIcon className='ion-margin-horizontal' icon={maleFemale} color="primary"></IonIcon>
+                <IonLabel>{user.gender ? user.gender : "Gender"}</IonLabel>
               </IonItem>
               <IonItem >
                 <IonIcon className='ion-margin-horizontal' icon={calendarNumber} color="primary"></IonIcon>
-                <IonLabel>02/03/1997</IonLabel>
+                <IonLabel>{user.dob ? user.dob : "Date of Birth"}</IonLabel>
+              </IonItem>
+            </div>}
+
+          {segment === "health" &&
+            <div className='ion-margin-vertical' color='medium'>
+              <IonItem >
+                <IonIcon className='ion-margin-horizontal' icon={bulb} color="primary"></IonIcon>
+                <IonLabel>{BMI !== 0 ? user.age : "Age "} </IonLabel>
+              </IonItem>
+              <IonItem >
+                <IonIcon className='ion-margin-horizontal' icon={fitness} color="primary"></IonIcon>
+                <IonLabel>{BMI !== 0 ? `${BMI} BMI (kg/cm^2)` : "BMI "} </IonLabel>
+              </IonItem>
+              <IonItem >
+                <IonIcon className='ion-margin-horizontal' icon={water} color="primary"></IonIcon>
+                <IonLabel>{user.blood ? user.blood : "Blood Group "} </IonLabel>
               </IonItem>
               <IonItem >
                 <IonIcon className='ion-margin-horizontal' icon={accessibility} color="primary"></IonIcon>
-                <IonLabel>162 cm</IonLabel>
+                <IonLabel>{user.height ? user.height : "Height in "} cm</IonLabel>
               </IonItem>
               <IonItem >
                 <IonIcon className='ion-margin-horizontal' icon={barbell} color="primary"></IonIcon>
-                <IonLabel>70 Kg</IonLabel>
+                <IonLabel>{user.weight ? user.weight : "Weight in "}kg</IonLabel>
               </IonItem>
-            </IonCardContent>
-          </IonCard>
-          <IonRow className='ion-text-center'>
+            </div>}
+
+          {/* <IonRow className='ion-text-center'>
             <IonCol>
-                <IonButton fill='outline'>UPDATE</IonButton>
+              <IonButton fill='outline'>UPDATE</IonButton>
             </IonCol>
-          </IonRow>
+          </IonRow> */}
 
         </div>
       </IonContent>

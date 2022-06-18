@@ -1,15 +1,20 @@
-import { IonContent, IonPage, IonCard, IonCardContent, IonCardHeader, IonRow, IonCol, IonInput, IonItem, IonLabel, IonButton, IonToast } from '@ionic/react'
+import { IonContent, IonPage, IonCard, IonCardContent, IonCardHeader, IonRow, IonCol, IonInput, IonItem, IonLabel, IonButton, IonToast, IonTitle } from '@ionic/react'
 import React, { useState } from 'react'
 import Header from '../../components/Header/Header'
 
 let bmi: any = 0;
 const Calculator = () => {
     const [data, setData] = useState({
-        weight: "",
-        height: "",
+        weight: 0,
+        height: 0,
     });
     const [showToast, setShowToast] = useState({
         show: false,
+        msg: "",
+        color: "",
+    });
+
+    const [msg, setmsg] = useState({
         msg: "",
         color: "",
     });
@@ -29,11 +34,17 @@ const Calculator = () => {
         if (!data.weight  && !data.height) {
          setShowToast({ show: true, msg: "Please enter weight and height", color: "danger" });
         }
-        bmi = (parseInt(data.weight) || 0 / (parseInt(data.height) || 0 * parseInt(data.height) || 0)).toFixed(2);
-     
-       
-        console.log(data);
-        setData({ weight: "", height: "" })
+        bmi = (data.weight  / ((data.height  * data.height) / 10000)).toFixed(2);
+        
+        
+        if (bmi < 18.5) {
+            setmsg({ msg: "You are underweight", color: "danger" });
+        }else if (bmi >= 18.5 && bmi <= 24.9) {
+            setmsg({ msg: "You are normal", color: "success" });
+        }else {
+            setmsg({ msg: "You are overweight", color: "danger" });
+        }
+        setData({ weight: 0, height: 0 })
 
     }
   return (
@@ -53,6 +64,7 @@ const Calculator = () => {
             <IonCard>
                 <IonCardHeader className='ion-text-center'>
                     <h1>{bmi > 0 ? bmi : `0.00` } BMI</h1>
+                    <IonTitle color={bmi?msg.color:"medium"}>{bmi ? msg.msg: null}</IonTitle>
                 </IonCardHeader>
                 <IonCardContent>
                     <IonRow>
@@ -82,7 +94,7 @@ const Calculator = () => {
                     <IonCol>
                         <IonButton
                             type="submit"
-                            onClick={(e) => {setData({ weight: "", height: "" }); bmi = 0;}}
+                            onClick={(e) => {setData({ weight: 0, height: 0 }); bmi = 0;}}
                             expand="block"
                             color="primary"
                             fill='outline'

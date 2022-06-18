@@ -1,24 +1,12 @@
 import React from 'react';
 import { Bar } from "react-chartjs-2";
+import {Chart as ChartJS} from 'chart.js/auto'
 
-const Chart = (props:any) => {
+const Chart = (props: any) => {
   return (
     <div>
-      <Bar
-        data={props.chartData}
-        options={{
-          plugins: {
-            title: {
-              display: true,
-              text: "Cryptocurrency prices"
-            },
-            legend: {
-              display: true,
-              position: "bottom"
-           }
-          }
-        }}
-      />
+      <h1>dgdfg</h1>
+     <Bar data={props.chartData}  />
     </div>
   )
 }

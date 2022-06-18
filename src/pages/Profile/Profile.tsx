@@ -5,12 +5,16 @@ import React, { useState } from 'react';
 import Loader from '../../components/Loader/Loader';
 import Header from '../../components/Header/Header';
 import { auth } from '../../firebase/FireBase-config';
-import { getWithQuery } from "../../firebase/FireBase-services"
+import { getWithQuery } from "../../firebase/FireBase-services";
+
 
 import "./Profile.css";
-import { accessibility, barbell, bulb, calendarNumber, call, cameraOutline, create, fitness, locationOutline, mail, maleFemale, pencil, sync, water } from 'ionicons/icons';
+import { accessibility, barbell, bulb, calendarNumber, call, cameraOutline, create, fitness, locationOutline, mail, maleFemale, pencil, sync, water, closeCircle, checkmarkCircle, arrowRedo } from 'ionicons/icons';
 import { Filter, GeneralData, Res, User } from '../../Models/Models';
 import { useHistory } from "react-router";
+import moment from 'moment';
+import { AiFillCloseCircle, AiFillCheckCircle } from "react-icons/ai";
+import { sendEmailVerification } from 'firebase/auth';
 
 let user: User = {} as User;
 let BMI: any = 0;
@@ -23,6 +27,11 @@ const Profile = () => {
     msg: "",
     color: "",
   });
+  const [msg, setmsg] = useState({
+    msg: "",
+    color: "",
+  });
+
   const history = useHistory();
 
   useIonViewWillEnter(() => {
@@ -34,8 +43,10 @@ const Profile = () => {
     let filter: Filter[] = [
       { field: "uid", operator: "==", value: auth.currentUser?.uid || localStorage.getItem("uid") },
     ];
-    const res: Res = await getWithQuery("users", filter);
+    const res: Res = await getWithQuery("users", filter,);
+    console.log(res);
 
+    console.log(auth.currentUser)
 
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
@@ -45,32 +56,41 @@ const Profile = () => {
       res.data.forEach((doc: User, index: number) => {
         user = { ...doc };
       });
-      console.log(user);
       if (user.weight && user.height) {
-        BMI = (parseInt(user.weight) || 0 / (parseInt(user.height) || 0 * parseInt(user.height) || 0)).toFixed(2);
+        BMI = (user.weight / ((user.height * user.height) / 10000)).toFixed(2)
       }
 
+      if (BMI < 18.5) {
+        setmsg({ msg: "You are underweight", color: "danger" });
+      } else if (BMI >= 18.5 && BMI <= 24.9) {
+        setmsg({ msg: "You are normal weight", color: "success" });
+      } else {
+        setmsg({ msg: "You are overweight", color: "danger" });
+      }
       // setShowToast({ show: true, msg: "Workout Added", color: "success" });
       setShowLoader({ show: false, msg: "" });
     }
   }
+
+
+
   return (
     <IonPage>
       <IonContent>
         {/* <Header title={"Profile"} /> */}
         <IonHeader>
-        <IonToolbar color='primary'>
-          <IonTitle>Profile</IonTitle>
-          <IonButtons slot="start">
-            <IonMenuButton menu='m1'></IonMenuButton>
-          </IonButtons>
-          <IonButtons slot="end">
-            <IonButton onClick={()=> history.push(`/update-profile/${user.id}`)} id="watch">
-              <IonIcon icon={sync}></IonIcon>
-            </IonButton>
-          </IonButtons>
-        </IonToolbar>
-      </IonHeader>
+          <IonToolbar color='primary'>
+            <IonTitle>Profile</IonTitle>
+            <IonButtons slot="start">
+              <IonMenuButton menu='m1'></IonMenuButton>
+            </IonButtons>
+            <IonButtons slot="end">
+              <IonButton onClick={() => history.push(`/update-profile/${user.id}`)} id="watch">
+                <IonIcon icon={sync}></IonIcon>
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
         <Loader open={showLoader.show} msg={showLoader.msg} />
         <IonToast
           isOpen={showToast.show}
@@ -82,24 +102,24 @@ const Profile = () => {
         <div className='ion-margin profileCard'>
           <IonCard color='light' >
             <div className='img-wrapper'>
-              <img src="https://media-exp1.licdn.com/dms/image/C5603AQH5aKilFMvP-Q/profile-displayphoto-shrink_800_800/0/1643982067844?e=1660176000&v=beta&t=lmyABd8vEetuJsvVCRbVoUrdgMUBHBCMDmYZoQGrOzc" alt="" />
-              {/* <img src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460__340.png' /> */}
+              {/* <img src="https://media-exp1.licdn.com/dms/image/C5603AQH5aKilFMvP-Q/profile-displayphoto-shrink_800_800/0/1643982067844?e=1660176000&v=beta&t=lmyABd8vEetuJsvVCRbVoUrdgMUBHBCMDmYZoQGrOzc" alt="" />*/}
+              <img src="https://t4.ftcdn.net/jpg/00/64/67/63/360_F_64676383_LdbmhiNM6Ypzb3FM4PPuFP9rHe7ri8Ju.webp" alt="" />
               <IonButton color='light'>
-                <IonIcon icon={cameraOutline} color="medium"></IonIcon>
+                {auth.currentUser?.emailVerified ? <AiFillCheckCircle style={{ color: "rgb(0, 110, 255)" }} /> : <AiFillCloseCircle style={{ color: "red" }} />}
               </IonButton>
             </div>
             <IonCardContent className='ion-text-center'>
               <h2>{user.name}</h2>
+              <IonLabel color={msg.color}>{msg.msg}</IonLabel>
               <IonText color='medium'>
                 <div className='ion-justify-content-center' style={{ display: 'flex' }}>
-                  <IonIcon icon={locationOutline} color="medium"></IonIcon>
-                  <p>2345 Street, Ohio, USA.</p>
+                  {auth.currentUser?.emailVerified ? <p>Verified</p> : <> <p>Please Verify Your Email</p> <IonIcon color='primary' className='ion-margin-start' size='small' icon={arrowRedo} ></IonIcon></>}
                 </div>
               </IonText>
             </IonCardContent>
           </IonCard>
 
-          <IonSegment value={segment} select-on-focus swipeGesture onIonChange={e => { setSegment(`${e.detail.value}`); console.log('Segment selected', e.detail.value) }}>
+          <IonSegment value={segment} select-on-focus swipeGesture onIonChange={e => { setSegment(`${e.detail.value}`) }}>
             <IonSegmentButton value="personal">
               <IonLabel>PERSONAL</IonLabel>
             </IonSegmentButton>
@@ -123,7 +143,7 @@ const Profile = () => {
               </IonItem>
               <IonItem >
                 <IonIcon className='ion-margin-horizontal' icon={calendarNumber} color="primary"></IonIcon>
-                <IonLabel>{user.dob ? user.dob : "Date of Birth"}</IonLabel>
+                <IonLabel>{user.dob ? moment(user.dob).format("L") : "Date of Birth"}</IonLabel>
               </IonItem>
             </div>}
 

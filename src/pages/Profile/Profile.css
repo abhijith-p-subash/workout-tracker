@@ -46,5 +46,10 @@
     position: absolute;
     right: -10px;
     bottom: -10px;
+    font-size: 2000px;
 
+}
+
+.pro-icon{
+  color: rgb(0, 110, 255);
 }

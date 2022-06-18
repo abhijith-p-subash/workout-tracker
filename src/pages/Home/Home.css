@@ -22,7 +22,7 @@
 }
 .IonItem {
   background-color: #063bda;
-  color: #063bda;
+  color: rgba(12, 125, 133, 0.699);
 
 }
 
@@ -30,3 +30,13 @@
   /* background-color: #c0e9ec; */
   border-radius: 10px;
 }
+
+.set span{
+  font-size: 10px;
+}
+.goal p{
+  font-size: 25px;
+  font-weight: bold;
+  color: #666666;
+}
+

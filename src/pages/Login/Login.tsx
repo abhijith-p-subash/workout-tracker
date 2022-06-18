@@ -9,8 +9,8 @@ import {
     IonItem,
     IonInput,
     IonButton,
-    IonImg,
     IonToast,
+    useIonViewWillEnter
 } from "@ionic/react";
 
 
@@ -31,6 +31,7 @@ const Login = () => {
     const [showLoader, setShowLoader] = useState({ show: false, msg: "" || {} });
     const history = useHistory();
 
+   
 
     const handleChange = (event: any) => {
         setLogindata((prevState) => ({
@@ -48,6 +49,7 @@ const Login = () => {
             localStorage.setItem("uid", logIn.user.uid);
             localStorage.setItem("accessToken", logIn.user.refreshToken);
             localStorage.setItem("auth", 'true');
+            
             if (logIn.user) {
                 setShowToast({ show: true, msg: "Logged in successfully", color: "success" });
                 setShowLoader({ show: false, msg: "" });
@@ -100,8 +102,8 @@ const Login = () => {
                 </IonRow>
                 <IonRow>
                     <IonCol sizeMd="6" offsetMd="3">
-                        <div className='ion-text-center ion-margin-top '>
-                            <a href="">Forgot Password ?</a>
+                        <div  className='ion-text-center ion-margin-top '>
+                            <a  onClick={() => history.push("/resetpassword")}>Forgot Password ?</a>
                         </div>
                         <IonButton onClick={() => history.push("/register")} className="ion-margin-vertical" type="button" fill="clear" expand="full" color="primary">
                             Create new Account

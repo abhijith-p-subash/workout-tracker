@@ -28,7 +28,13 @@ import {
   useIonPopover,
   IonMenuButton,
   IonDatetime,
-  IonText
+  IonText,
+  IonFabList,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
+  IonCardHeader,
+  IonCardSubtitle,
 } from "@ionic/react";
 
 import {
@@ -49,6 +55,8 @@ import {
   timerOutline,
   hourglassOutline,
   stop,
+  logoVimeo,
+  swapHorizontal,
 } from "ionicons/icons";
 
 import { auth } from "../../firebase/FireBase-config";
@@ -59,62 +67,136 @@ import Header from "../../components/Header/Header";
 import Loader from "../../components/Loader/Loader";
 import Tabs from "../../components/Tab/Tab";
 import { wrkouts } from "../../assets/data/seed";
-import { MyWorkOut, Res, Filter, AllWorkOut, Set } from "../../Models/Models";
+import {
+  MyWorkOut,
+  Res,
+  Filter,
+  AllWorkOut,
+  Set,
+  OrderBy,
+  User,
+  MyWeight,
+} from "../../Models/Models";
 import {
   createDoc,
   getWithQuery,
   update,
   deleteOne,
-  getAll
+  getAll,
 } from "../../firebase/FireBase-services";
 import { Job, chunks, compare } from "../../Job/Job";
 import moment from "moment";
+import Axios from "../../Axios/Axios";
 
 import "./Home.css";
 
-
+let user: User = {} as User;
 let myWrkOut: MyWorkOut[] = [];
+let myWeight: MyWeight = {} as MyWeight;
 let allWrkOut: AllWorkOut[] = [];
 let dateFilter: string = moment().format();
+let BMI: any = 0;
 
 const mySet: { weight: number; rep: number }[] = [];
 
 const Home: React.FC = () => {
-
-
   const [addBtn, setAddBtn] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
+  const [showGoalAlert, setShowGoalAlert] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [calenderCtrl, setCalenderCtrl] = useState(false);
   const [showAddBtn, setShowAddBtn] = useState(false);
   const [dataToAlert, setDataToAlert] = useState<MyWorkOut>();
   const [showAlert3, setShowAlert3] = useState(false);
-  const [setDelData, setSetDelData] = useState({ index:0, set:{} as Set, wrkout:{} as MyWorkOut});
-  const [showToast, setShowToast] = useState({ show: false, msg: "", color: "", });
+  const [setDelData, setSetDelData] = useState({
+    index: 0,
+    set: {} as Set,
+    wrkout: {} as MyWorkOut,
+  });
+  const [showToast, setShowToast] = useState({
+    show: false,
+    msg: "",
+    color: "",
+  });
   const [showLoader, setShowLoader] = useState({ show: false, msg: "" || {} });
   const [popoverDate, setPopoverDate] = useState(moment().format());
   const [watch, setWatch] = useState({ ctrl: false, type: "" });
   const [isPlaying, setIsPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const countRef = useRef(0);
+  const [msg, setmsg] = useState({ msg: "", color: "" });
+  const [goal, setGoal] = useState(0);
   const history = useHistory();
 
-
-
-
   useIonViewWillEnter(() => {
+    Axios.get("")
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
     getData();
+    getUser();
     getAllWrkOut();
+    getCurrentWeight();
   }, []);
 
+  const getUser = async () => {
+    setShowLoader({ show: true, msg: "Loading..." });
+    let filter: Filter[] = [
+      {
+        field: "uid",
+        operator: "==",
+        value: auth.currentUser?.uid || localStorage.getItem("uid"),
+      },
+    ];
+    const res: Res = await getWithQuery("users", filter);
+    console.log(res);
+
+    console.log(auth.currentUser);
+
+    if (res.error) {
+      const err = JSON.parse(JSON.stringify(res.data));
+      setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
+      setShowLoader({ show: false, msg: "" });
+    } else {
+      res.data.forEach((doc: User, index: number) => {
+        user = { ...doc };
+      });
+      if (user.weight && user.height) {
+        BMI = (user.weight / ((user.height * user.height) / 10000)).toFixed(2);
+      }
+
+      if (BMI < 18.5) {
+        setmsg({ msg: "underweight", color: "danger" });
+      } else if (BMI >= 18.5 && BMI <= 24.9) {
+        setmsg({ msg: "normal weight", color: "success" });
+      } else {
+        setmsg({ msg: "overweight", color: "danger" });
+      }
+      setGoal(user.height ? user.height - 100 : 0);
+      // setShowToast({ show: true, msg: "Workout Added", color: "success" });
+      setShowLoader({ show: false, msg: "" });
+    }
+  };
 
   const getData = async () => {
     const UID = await localStorage.getItem("uid");
     myWrkOut = [];
     let filter: Filter[] = [
-      { field: "uid", operator: "==", value: auth.currentUser?.uid || localStorage.getItem("uid") },
+      {
+        field: "uid",
+        operator: "==",
+        value: auth.currentUser?.uid || localStorage.getItem("uid"),
+      },
       { field: "date", operator: "==", value: moment(dateFilter).format("L") },
     ];
+
+    let orderBy: OrderBy = {
+      field: "date",
+      direction: "desc",
+    };
 
     setShowLoader({ show: true, msg: "Loading..." });
     const res: Res = await getWithQuery("myWorkOut", filter);
@@ -130,8 +212,7 @@ const Home: React.FC = () => {
       setShowToast({ show: true, msg: "Workout Added", color: "success" });
       setShowLoader({ show: false, msg: "" });
     }
-
-  }
+  };
 
   const getAllWrkOut = async () => {
     allWrkOut = [];
@@ -145,22 +226,14 @@ const Home: React.FC = () => {
       res.data.forEach((doc: AllWorkOut, index: number) => {
         allWrkOut.push(doc);
       });
-
-      console.log(allWrkOut);
-
       setShowModal(false);
       setShowToast({ show: true, msg: "Workout Added", color: "success" });
       setShowLoader({ show: false, msg: "" });
     }
-
-
-
-  }
+  };
 
   const addWrkOut = async () => {
     setShowModal(!showModal);
-    console.log(await deleteOne("myWorkOut", "Zkkj1MuBKXLvMy7e6y5e"));
-
   };
 
   const addWrkOutData = (data: MyWorkOut) => {
@@ -171,11 +244,9 @@ const Home: React.FC = () => {
   const editSets = async (data: MyWorkOut) => {
     setDataToAlert(data);
     setShowAlert(!showAlert);
-  }
-
+  };
 
   const deleteWrkOut = async (id: any) => {
-    console.log(id);
     setShowLoader({ show: true, msg: "Deleting..." });
     const res: Res = await deleteOne("myWorkOut", id);
     if (res.error) {
@@ -187,14 +258,13 @@ const Home: React.FC = () => {
       setShowToast({ show: true, msg: "Workout Deleted", color: "success" });
       setShowLoader({ show: false, msg: "" });
     }
-  }
+  };
 
   const selectDate = (ev: any) => {
     setCalenderCtrl(true);
     setPopoverDate(moment(ev.detail.value!).format());
     let a = dateFilter;
     dateFilter = ev.detail.value!;
-    console.log(popoverDate);
     // if (ev.detail.value !== moment().format()) {
     //   setShowAddBtn(true);
     //   setShowLoader({ show: false, msg: "" });
@@ -206,9 +276,7 @@ const Home: React.FC = () => {
     if (ev.detail.value !== a) {
       getData();
     }
-
-  }
-
+  };
 
   const selectWrkOut = async (
     event: any,
@@ -225,6 +293,7 @@ const Home: React.FC = () => {
     workout.workout = event.target.value;
     workout.set = [];
     workout.time = moment(dateFilter).format("LT");
+    // workout.createdAt = new Date(dateFilter);
     workout.createdAt = moment(dateFilter).format();
     workout.date = moment(dateFilter).format("L");
 
@@ -242,12 +311,10 @@ const Home: React.FC = () => {
     }
   };
 
-
   const watchCtrl = (ctrl: boolean, type: string) => {
-    console.log(ctrl, type);
     setIsPlaying(false);
     setWatch({ ctrl: ctrl, type: type });
-  }
+  };
 
   const handleStart = () => {
     setIsPlaying(true);
@@ -258,31 +325,57 @@ const Home: React.FC = () => {
     //   }
 
     // }
-  }
+  };
 
-  const deleteSet = async (items:MyWorkOut, item:Set, index:number) => {
+  const deleteSet = async (items: MyWorkOut, item: Set, index: number) => {
     setShowAlert3(true);
     setSetDelData({
-      set:item,
-      index:index,
-      wrkout:items
+      set: item,
+      index: index,
+      wrkout: items,
     });
-    console.log(setDelData);
-  }
+  };
 
+  const getCurrentWeight = async () => {
+    setShowLoader({ show: true, msg: "Loading..." });
+    let filter: Filter[] = [
+      {
+        field: "uid",
+        operator: "==",
+        value: auth.currentUser?.uid || localStorage.getItem("uid"),
+      },
+      { field: "date", operator: "==", value: moment().format("L") },
+    ];
+    const res: Res = await getWithQuery("myWeight", filter);
+    console.log(res);
 
+    if (res.error) {
+      const err = JSON.parse(JSON.stringify(res.data));
+      setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
+      setShowLoader({ show: false, msg: "" });
+    } else {
+      res.data.forEach((doc: MyWeight, index: number) => {
+        myWeight = { ...doc };
+      });
+      // setShowToast({ show: true, msg: "Workout Added", color: "success" });
+      setShowLoader({ show: false, msg: "" });
+    }
+  };
 
   return (
     <IonPage id="main">
       {/* <Header title="Home" /> */}
       <IonHeader>
-        <IonToolbar color='primary'>
+        <IonToolbar color="primary">
           <IonTitle>Home</IonTitle>
           <IonButtons slot="start">
-            <IonMenuButton menu='m1'></IonMenuButton>
+            <IonMenuButton menu="m1"></IonMenuButton>
           </IonButtons>
           <IonButtons slot="end">
-            <IonButton onClick={() => setCalenderCtrl(false)} id="open-date-input">
+            <IonButton
+              onClick={() => setCalenderCtrl(false)}
+              id="open-date-input"
+            >
               <IonIcon icon={calendarOutline}></IonIcon>
             </IonButton>
           </IonButtons>
@@ -294,7 +387,6 @@ const Home: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-
       <IonToast
         isOpen={showToast.show}
         onDidDismiss={() => setShowToast({ show: false, msg: "", color: "" })}
@@ -304,13 +396,20 @@ const Home: React.FC = () => {
       />
       <Loader open={showLoader.show} msg={showLoader.msg} />
       <IonContent className="content" fullscreen>
-
-
         {/* ****************CALENDER POPOVER **************************/}
-        <IonPopover size="auto" side="left" alignment="center" trigger="open-date-input" dismissOnSelect={true} showBackdrop={true}>
+        <IonPopover
+          size="auto"
+          side="left"
+          alignment="center"
+          trigger="open-date-input"
+          dismissOnSelect={true}
+          showBackdrop={true}
+        >
           <IonDatetime
             presentation="date"
-            onIonChange={(e) => { selectDate(e) }}
+            onIonChange={(e) => {
+              selectDate(e);
+            }}
             value={dateFilter}
           />
         </IonPopover>
@@ -332,14 +431,22 @@ const Home: React.FC = () => {
                 {allWrkOut.map((item, index) => (
                   <IonItem className="moadlItem" key={index}>
                     <IonIcon slot="end" color="primary" name={close} />
-                    <IonLabel className="ion-text-capitalize">{item.bodyPart}</IonLabel>
+                    <IonLabel className="ion-text-capitalize">
+                      {item.bodyPart}
+                    </IonLabel>
                     <IonSelect
                       interface="popover"
                       placeholder="Select"
-                      onIonChange={(e) => selectWrkOut(e, item.bodyPart, item.id)}
+                      onIonChange={(e) =>
+                        selectWrkOut(e, item.bodyPart, item.id)
+                      }
                     >
                       {item.workouts.map((wrkout, index) => (
-                        <IonSelectOption className="ion-text-capitalize" value={wrkout.name} key={index}>
+                        <IonSelectOption
+                          className="ion-text-capitalize"
+                          value={wrkout.name}
+                          key={index}
+                        >
                           {wrkout.name}
                         </IonSelectOption>
                       ))}
@@ -382,8 +489,7 @@ const Home: React.FC = () => {
               role: "cancel",
               cssClass: "secondary",
               id: "cancel-button",
-              handler: (blah) => {
-              },
+              handler: (blah) => {},
             },
             {
               text: "Add",
@@ -405,13 +511,16 @@ const Home: React.FC = () => {
 
         {/* ****************POPOVER **************************/}
         {myWrkOut.map((item, index) => (
-          <IonPopover
-            trigger={item.id}
-            dismissOnSelect={true}
-          >
+          <IonPopover trigger={item.id} dismissOnSelect={true}>
             <IonContent>
               <IonList>
-                <IonItem onClick={() => history.push(`/info/${item.workout}/${item.bodyPartID}`)} button={true} detail={false}>
+                <IonItem
+                  onClick={() =>
+                    history.push(`/info/${item.workout}/${item.bodyPartID}`)
+                  }
+                  button={true}
+                  detail={false}
+                >
                   <IonIcon icon={informationCircleOutline}></IonIcon>
                   <IonLabel className="ion-margin-start">Informaton</IonLabel>
                 </IonItem>
@@ -419,7 +528,11 @@ const Home: React.FC = () => {
                   <IonIcon icon={refresh}></IonIcon>
                   <IonLabel className="ion-margin-start">Edit</IonLabel>
                 </IonItem> */}
-                <IonItem onClick={() => deleteWrkOut(item.id)} button={true} detail={false}>
+                <IonItem
+                  onClick={() => deleteWrkOut(item.id)}
+                  button={true}
+                  detail={false}
+                >
                   <IonIcon icon={trashOutline}></IonIcon>
                   <IonLabel className="ion-margin-start">Delete</IonLabel>
                 </IonItem>
@@ -430,17 +543,22 @@ const Home: React.FC = () => {
         {/* ****************POPOVER **************************/}
 
         {/* ****************WATCH POPOVER **************************/}
-        <IonPopover
-          trigger="watch"
-          dismissOnSelect={true}
-        >
+        <IonPopover trigger="watch" dismissOnSelect={true}>
           <IonContent>
             <IonList>
-              <IonItem onClick={() => watchCtrl(true, "stop")} button={true} detail={false} >
+              <IonItem
+                onClick={() => watchCtrl(true, "stop")}
+                button={true}
+                detail={false}
+              >
                 <IonIcon icon={timerOutline}></IonIcon>
                 <IonLabel className="ion-margin-start">Stop Watch</IonLabel>
               </IonItem>
-              <IonItem onClick={() => watchCtrl(true, "counter")} button={true} detail={false}>
+              <IonItem
+                onClick={() => watchCtrl(true, "counter")}
+                button={true}
+                detail={false}
+              >
                 <IonIcon icon={hourglassOutline}></IonIcon>
                 <IonLabel className="ion-margin-start">Count Down</IonLabel>
               </IonItem>
@@ -451,86 +569,228 @@ const Home: React.FC = () => {
 
         {/* ****************SET DELETE ALERT **************************/}
         <IonAlert
-          isOpen={showAlert3}
-          onDidDismiss={() => setShowAlert3(false)}
-          cssClass='my-custom-class'
-          header={`Delete !`}
-          message={`SET 0${setDelData.index + 1}`}
+          isOpen={showGoalAlert}
+          onDidDismiss={() => {
+            setShowAlert(false);
+            setAddBtn(false);
+          }}
+          cssClass="my-custom-class"
+          header="Current Weight"
+          subHeader={`${moment().format("L")}`}
+          inputs={[
+            {
+              name: "weight",
+              type: "number",
+              placeholder: "10 Kg",
+              label: "Weight",
+            },
+          ]}
           buttons={[
             {
-              text: 'Cancel',
-              role: 'cancel',
-              cssClass: 'secondary',
-              id: 'cancel-button',
-              handler: blah => {
-                console.log('Confirm Cancel: blah');
-              }
+              text: "Cancel",
+              role: "cancel",
+              cssClass: "secondary",
+              id: "cancel-button",
+              handler: (blah) => {},
             },
             {
-              text: 'Confirm',
-              id: 'confirm-button',
-              handler: async () => {
-                console.log('Confirm Okay');
-                setShowLoader({ show: true, msg: "Deleting..." });
-                if (setDelData.index > -1) {
-                  setDelData.wrkout.set.splice(setDelData.index, 1);
-                }
-                console.log(setDelData.wrkout);
-                const res:Res = await update("myWorkOut", setDelData.wrkout.id, setDelData.wrkout);
+              text: "Add",
+              id: "confirm-button",
+              handler: async (data) => {
+                console.log(data);
+                setShowLoader({ show: true, msg: "Loading..." });
+                const res = await createDoc("myWeight", {
+                  uid: auth.currentUser?.uid,
+                  weight: data.weight,
+                  date: moment().format("L"),
+                  createdAt: moment().format(),
+                });
+
                 if (res.error) {
                   const err = JSON.parse(JSON.stringify(res.data));
-                  setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
+                  setShowToast({
+                    show: true,
+                    msg: `${err.code}`,
+                    color: "danger",
+                  });
                   setShowLoader({ show: false, msg: "" });
                 } else {
-                  getData();
-                  setShowToast({ show: true, msg: "Updated", color: "success" });
+                  getCurrentWeight();
+                  setShowToast({
+                    show: true,
+                    msg: "Workout Added",
+                    color: "success",
+                  });
                   setShowLoader({ show: false, msg: "" });
                 }
-              }
-            }
+              },
+            },
           ]}
         />
 
         {/* ****************SET DELETE ALERT **************************/}
 
+        {/* ****************GOAL ALERT **************************/}
+        <IonAlert
+          isOpen={showAlert3}
+          onDidDismiss={() => setShowAlert3(false)}
+          cssClass="my-custom-class"
+          header={`Delete !`}
+          message={`SET 0${setDelData.index + 1}`}
+          buttons={[
+            {
+              text: "Cancel",
+              role: "cancel",
+              cssClass: "secondary",
+              id: "cancel-button",
+              handler: (blah) => {},
+            },
+            {
+              text: "Confirm",
+              id: "confirm-button",
+              handler: async () => {
+                setShowLoader({ show: true, msg: "Deleting..." });
+                if (setDelData.index > -1) {
+                  setDelData.wrkout.set.splice(setDelData.index, 1);
+                }
 
-        {watch.ctrl ? <div className="timer-root ion-margin">
-          <IonCard color="light">
-            <IonCardContent>
-              <IonRow>
-                <IonCol size="6" className="ion-text-center">
-                  <IonTitle>01:10:00</IonTitle>
-                </IonCol>
-                <IonCol size="2" >
-                  <IonButtons>
-                    <IonButton>
-                      <IonIcon size="small" icon={watch.type === "stop" ? stop : add}></IonIcon>
-                    </IonButton>
-                  </IonButtons>
-                </IonCol>
-                <IonCol size="2" >
-                  <IonButtons>
-                    <IonButton onClick={() => setIsPlaying(!isPlaying)}>
-                      <IonIcon size="small" icon={isPlaying ? pause : play}></IonIcon>
-                    </IonButton>
-                  </IonButtons>
-                </IonCol>
-                <IonCol size="2" >
-                  <IonButtons>
-                    <IonButton onClick={() => { setWatch({ ctrl: false, type: "" }); setIsPlaying(false) }}>
-                      <IonIcon size="small" icon={close}></IonIcon>
-                    </IonButton>
-                  </IonButtons>
-                </IonCol>
-              </IonRow>
-            </IonCardContent>
-          </IonCard>
-        </div> : null}
+                const res: Res = await update(
+                  "myWorkOut",
+                  setDelData.wrkout.id,
+                  setDelData.wrkout
+                );
+                if (res.error) {
+                  const err = JSON.parse(JSON.stringify(res.data));
+                  setShowToast({
+                    show: true,
+                    msg: `${err.code}`,
+                    color: "danger",
+                  });
+                  setShowLoader({ show: false, msg: "" });
+                } else {
+                  getData();
+                  setShowToast({
+                    show: true,
+                    msg: "Updated",
+                    color: "success",
+                  });
+                  setShowLoader({ show: false, msg: "" });
+                }
+              },
+            },
+          ]}
+        />
 
+        {/* ****************GOAL ALERT **************************/}
+
+        {watch.ctrl ? (
+          <div className="timer-root ion-margin">
+            <IonCard color="light">
+              <IonCardContent>
+                <IonRow>
+                  <IonCol size="6" className="ion-text-center">
+                    <IonTitle>01:10:00</IonTitle>
+                  </IonCol>
+                  <IonCol size="2">
+                    <IonButtons>
+                      <IonButton>
+                        <IonIcon
+                          size="small"
+                          icon={watch.type === "stop" ? stop : add}
+                        ></IonIcon>
+                      </IonButton>
+                    </IonButtons>
+                  </IonCol>
+                  <IonCol size="2">
+                    <IonButtons>
+                      <IonButton onClick={() => setIsPlaying(!isPlaying)}>
+                        <IonIcon
+                          size="small"
+                          icon={isPlaying ? pause : play}
+                        ></IonIcon>
+                      </IonButton>
+                    </IonButtons>
+                  </IonCol>
+                  <IonCol size="2">
+                    <IonButtons>
+                      <IonButton
+                        onClick={() => {
+                          setWatch({ ctrl: false, type: "" });
+                          setIsPlaying(false);
+                        }}
+                      >
+                        <IonIcon size="small" icon={close}></IonIcon>
+                      </IonButton>
+                    </IonButtons>
+                  </IonCol>
+                </IonRow>
+              </IonCardContent>
+            </IonCard>
+          </div>
+        ) : null}
+
+        {/* <div>
+          <IonItemSliding>
+            <IonItemOptions side="start">
+              <IonItemOption onClick={() => console.log('favorite clicked')}>Favorite</IonItemOption>
+              <IonItemOption color="danger" onClick={() => console.log('share clicked')}>Share</IonItemOption>
+            </IonItemOptions>
+
+            <IonItem className="set">
+              <IonLabel className="ion-text-center">START WORKOUT <span>Swipe</span> <IonIcon icon={swapHorizontal}></IonIcon> </IonLabel>
+            </IonItem>
+
+            <IonItemOptions side="end">
+              <IonItemOption onClick={() => console.log('unread clicked')}>Unread</IonItemOption>
+            </IonItemOptions>
+          </IonItemSliding>
+        </div> */}
+
+        <div className="goalPad">
+          <IonRow className="ion-text-center">
+            <IonCol size="6">
+              <IonCard color="light">
+                <IonCardHeader>
+                  <IonLabel className="ion-text-center ion-text-uppercase">
+                    YOUR GOAL
+                  </IonLabel>
+                  {/* <IonCardSubtitle color={msg.color}>{msg.msg}</IonCardSubtitle> */}
+                </IonCardHeader>
+
+                <IonCardContent className="ion-text-center goal">
+                  <p> {goal} Kg </p>
+                </IonCardContent>
+              </IonCard>
+            </IonCol>
+            <IonCol size="6">
+              <IonCard color="light">
+                <IonCardHeader>
+                  <IonLabel className="ion-text-center">
+                    CURRENT WEIGHT
+                  </IonLabel>
+                </IonCardHeader>
+                <IonCardContent
+                  className="ion-text-center goal"
+                  onClick={() =>
+                    myWeight.weight ? null : setShowGoalAlert(true)
+                  }
+                >
+                  {myWeight.weight ? (
+                    <p> {myWeight.weight} Kg </p>
+                  ) : (
+                    <p>
+                      <IonIcon icon={add}></IonIcon>
+                    </p>
+                  )}
+                </IonCardContent>
+              </IonCard>
+            </IonCol>
+          </IonRow>
+        </div>
 
         <div className="note">
           {myWrkOut.map((item, index) => (
-            <IonCard className="ion-margin-vertical">
+            <IonCard key={index} className="ion-margin-vertical">
               <IonItem className="ion-activated">
                 <IonLabel color="primary">{item.workout}</IonLabel>
                 <IonLabel
@@ -547,14 +807,20 @@ const Home: React.FC = () => {
                 </IonButtons>
               </IonItem>
               <IonCardContent className="ion-justify-content-center">
-
                 <IonRow>
                   {item.set.map((items, index) => (
-                    <IonCol onClick={() => deleteSet(item ,items, index)}>
-                      <div>
+                    <IonCol
+                      key={index}
+                      onClick={() => deleteSet(item, items, index)}
+                    >
+                      <div className="set">
                         <h4 style={{ fontWeight: "bold" }}>SET {index + 1}</h4>
-                        <h6>{items.weight} Kg</h6>
-                        <h6>{items.rep} Rep</h6>
+                        <h6>
+                          {items.weight} <span>Kg</span>
+                        </h6>
+                        <h6>
+                          {items.rep} <span>Rep</span>
+                        </h6>
                       </div>
                     </IonCol>
                   ))}
@@ -574,13 +840,12 @@ const Home: React.FC = () => {
           activated={addBtn}
           horizontal="end"
           slot="fixed"
-
         >
           <IonFabButton disabled={showAddBtn} onClick={() => addWrkOut()}>
             <IonIcon icon={add} />
           </IonFabButton>
           {/* <IonFabList side="top">
-          <IonLabel color="primary">ARM</IonLabel>
+            <IonLabel className="ion-text-center" color="primary">Add Weight</IonLabel>
             <IonFabButton color="dark"><IonIcon icon={logoVimeo} /></IonFabButton>
           </IonFabList> */}
         </IonFab>

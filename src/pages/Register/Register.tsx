@@ -94,8 +94,7 @@ const Register = () => {
 
 
         const  regUser = createDoc("users", userData);
-        alert("Registration Successful");
-    
+      
     
         setShowToast({
           show: true,

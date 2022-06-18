@@ -16,7 +16,8 @@ import {
   query,
   where,
   QueryConstraint,
-  orderBy
+  orderBy,
+  startAt, endAt,
 } from "firebase/firestore";
 import { Filter, GeneralData } from "../Models/Models";
 
@@ -70,7 +71,7 @@ export const getById = async (collectionName: string, id: string) => {
   try {
     let data: GeneralData[] = [];
     const res = await getDoc(doc(db, collectionName, id));
-    
+
     return { data: res.data(), error: false };
   } catch (error) {
     return { data: error, error: true };
@@ -86,8 +87,8 @@ export const getWithQuery = async (collectionName: string, Where: any) => {
     });
 
     const ref = collection(db, collectionName),
-      Query = query(ref, ...filter,); 
-      // orderBy("createdAt", "desc")
+      Query = query(ref, ...filter,);
+    // orderBy("createdAt", "desc")
     const res = await getDocs(Query);
     res.forEach((doc) => {
       if (doc.exists()) {
@@ -96,8 +97,33 @@ export const getWithQuery = async (collectionName: string, Where: any) => {
     });
     return { data: data, error: false };
   } catch (error) {
-    console.log(error);
-    
+
+
+    return { data: error, error: true };
+  }
+};
+
+export const getWithQueryOrder = async (collectionName: string, Where: any, order: any) => {
+  try {
+    let data: GeneralData[] = [];
+    let filter: QueryConstraint[] = [];
+    Where.forEach((item: Filter) => {
+      filter.push(where(item?.field, item?.operator, item?.value));
+    });
+
+    const ref = collection(db, collectionName),
+      Query = query(ref, ...filter, );
+    // orderBy("createdAt", "desc")
+    const res = await getDocs(Query);
+    res.forEach((doc) => {
+      if (doc.exists()) {
+        data.push({ ...doc.data(), id: doc.id });
+      }
+    });
+    return { data: data, error: false };
+  } catch (error) {
+
+
     return { data: error, error: true };
   }
 };
@@ -120,4 +146,4 @@ export const deleteOne = async (collectionName: string, id: string) => {
   } catch (error) {
     return { data: error, error: true };
   }
- };
+};

@@ -21,8 +21,8 @@ export interface User{
     email?:string,
     phone?:string,
     age?:number,
-    weight?:string | "0",
-    height?:string | "0",
+    weight?:number,
+    height?:number,
     dob?:string,
     bmi?:string,
     blood?:string,
@@ -38,7 +38,7 @@ export interface MyWorkOut{
     set:Set[],
     date?:string,
     time:string,
-    createdAt:string,
+    createdAt: Date | string,
     updatedAt?:string,
 }
 
@@ -67,4 +67,19 @@ export interface Filter{
     field?:string | any,
     operator?:string | any,
     value?:any
+}
+
+
+export interface OrderBy{
+    field?:string | any,
+    direction?:string | any
+    startAt?:Date,
+    endAt?:Date 
+}
+
+export interface MyWeight{
+    uid:string,
+    weight:number,
+    date:Date,
+    createdAt:Date,
 }

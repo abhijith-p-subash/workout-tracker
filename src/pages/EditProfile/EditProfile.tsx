@@ -6,7 +6,7 @@ import Loader from '../../components/Loader/Loader'
 import { getById, update } from '../../firebase/FireBase-services';
 import { Res, User } from '../../Models/Models'; import moment from 'moment';
 
-let user: User = {} as User;
+// let user: User = {} as User;
 
 
 const EditProfile = () => {
@@ -28,17 +28,15 @@ const EditProfile = () => {
     }, []);
 
     const getUser = async () => {
+        setUser({});
         setShowLoader({ show: true, msg: "Loading..." });
         const res: Res = await getById("users", ID.id);
-        console.log(res);
-
         if (res.error) {
             const err = JSON.parse(JSON.stringify(res.data));
             setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
             setShowLoader({ show: false, msg: "" });
         } else {
             setUser({ ...res.data });
-            console.log(user);
             setShowLoader({ show: false, msg: "" });
         }
     }
@@ -48,9 +46,6 @@ const EditProfile = () => {
             ...prevState,
             [event.target.name]: event.target.value,
         }));
-        console.log(user);
-
-
     }
 
     const handleSubmit = async (event: any) => {
@@ -62,9 +57,6 @@ const EditProfile = () => {
             setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
             setShowLoader({ show: false, msg: "" });
         } else {
-            // res.data.forEach((doc: User, index: number) => {
-            //     setUser({ ...doc });
-            // });
             history.push("/profile");
             setShowLoader({ show: false, msg: "" });
         }
@@ -86,11 +78,6 @@ const EditProfile = () => {
                                 close
                             </IonButton>
                         </IonButtons>
-                        {/* <IonButtons slot="end">
-                            <IonButton >
-                                <IonIcon icon={checkmark}></IonIcon>
-                            </IonButton>
-                        </IonButtons> */}
                     </IonToolbar>
                 </IonHeader>
                 <Loader open={showLoader.show} msg={showLoader.msg} />
@@ -108,7 +95,7 @@ const EditProfile = () => {
                         presentation="date"
                         name='dob'
                         onIonChange={(e) => handleChange(e)}
-                        value={moment(user.dob).format("YYYY-MM-DD")}
+                        value={ (user.dob || false) ? moment(user.dob).format() : moment().format() }
                     />
                 </IonPopover>
                 {/* ****************CALENDER POPOVER **************************/}
@@ -143,7 +130,7 @@ const EditProfile = () => {
                                 <IonIcon icon={calendarOutline}></IonIcon>
                             </IonButton>
                         </IonButtons>
-                        <IonInput type='text' name='dob' value={user.dob} onIonChange={(e) => handleChange(e)}></IonInput>
+                        <IonInput type='text' name='dob' value={moment(user.dob).format("L")} onIonChange={(e) => handleChange(e)}></IonInput>
                     </IonItem>
                     <IonItem>
                         <IonLabel position="floating">Age</IonLabel>

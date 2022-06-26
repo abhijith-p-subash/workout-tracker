@@ -89,7 +89,7 @@ const Info = () => {
 
     return (
         <>
-            <IonPage>
+            {/* <IonPage>
                 <IonContent>
                 <Loader open={showLoader.show} msg={showLoader.msg} />
                     <IonHeader>
@@ -125,7 +125,7 @@ const Info = () => {
                         </IonRow>
                     </div>
                 </IonContent>
-            </IonPage>
+            </IonPage> */}
         </>
     );
 };

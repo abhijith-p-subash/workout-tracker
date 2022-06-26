@@ -44,20 +44,23 @@ const App: React.FC = () => {
 
   useEffect(() => {
     console.log(auth.currentUser?.uid);
-    if (auth.currentUser?.uid) {
+    // if (auth.currentUser?.uid) {
+    //   setIsAuthenticated(true);
+    // }
+    if (localStorage.getItem("auth")) {
       setIsAuthenticated(true);
     }
     console.log(isAuthenticated);
   },[])
 
-    useIonViewWillEnter(() => {
-      console.log(auth.currentUser?.uid);
-      if (auth.currentUser?.uid) {
-        setIsAuthenticated(true);
-      }
-      console.log(isAuthenticated);
+    // useIonViewWillEnter(() => {
+    //   console.log(auth.currentUser?.uid);
+    //   if (auth.currentUser?.uid) {
+    //     setIsAuthenticated(true);
+    //   }
+    //   console.log(isAuthenticated);
       
-    },[]);
+    // },[]);
  
   
 

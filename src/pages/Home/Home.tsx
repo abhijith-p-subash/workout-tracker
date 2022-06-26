@@ -35,6 +35,8 @@ import {
   IonItemOption,
   IonCardHeader,
   IonCardSubtitle,
+  IonAvatar,
+  IonSearchbar,
 } from "@ionic/react";
 
 import {
@@ -57,6 +59,8 @@ import {
   stop,
   logoVimeo,
   swapHorizontal,
+  pulse,
+  arrowBack,
 } from "ionicons/icons";
 
 import { auth } from "../../firebase/FireBase-config";
@@ -76,6 +80,7 @@ import {
   OrderBy,
   User,
   MyWeight,
+  WorkOut,
 } from "../../Models/Models";
 import {
   createDoc,
@@ -83,17 +88,21 @@ import {
   update,
   deleteOne,
   getAll,
+  getWithQueryOrder,
 } from "../../firebase/FireBase-services";
 import { Job, chunks, compare } from "../../Job/Job";
 import moment from "moment";
 import Axios from "../../Axios/Axios";
+import { bodyPart } from "../../Seeder/BodyPart";
+import { capitalize } from "../../Util/Util";
 
 import "./Home.css";
+import { Timestamp } from "firebase/firestore";
 
 let user: User = {} as User;
 let myWrkOut: MyWorkOut[] = [];
 let myWeight: MyWeight = {} as MyWeight;
-let allWrkOut: AllWorkOut[] = [];
+let allWrkOut: WorkOut[] = [];
 let dateFilter: string = moment().format();
 let BMI: any = 0;
 
@@ -126,6 +135,8 @@ const Home: React.FC = () => {
   const countRef = useRef(0);
   const [msg, setmsg] = useState({ msg: "", color: "" });
   const [goal, setGoal] = useState(0);
+  const [openWrkOut, setOpenWrkOut] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const history = useHistory();
 
   useIonViewWillEnter(() => {
@@ -138,7 +149,6 @@ const Home: React.FC = () => {
       });
     getData();
     getUser();
-    getAllWrkOut();
     getCurrentWeight();
   }, []);
 
@@ -194,12 +204,12 @@ const Home: React.FC = () => {
     ];
 
     let orderBy: OrderBy = {
-      field: "date",
+      field: "createdAt",
       direction: "desc",
     };
 
     setShowLoader({ show: true, msg: "Loading..." });
-    const res: Res = await getWithQuery("myWorkOut", filter);
+    const res: Res = await getWithQueryOrder("myWorkOut", filter, orderBy);
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
       setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
@@ -214,25 +224,32 @@ const Home: React.FC = () => {
     }
   };
 
-  const getAllWrkOut = async () => {
+  const getAllWrkOut = async (part: string) => {
     allWrkOut = [];
     setShowLoader({ show: true, msg: "Loading..." });
-    const res: Res = await getAll("exercises");
+    let filter = [{ field: "bodyPart", operator: "==", value: part }];
+    const res: Res = await getWithQuery("exercises", filter);
+    console.log(res);
+
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
       setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
       setShowLoader({ show: false, msg: "" });
     } else {
-      res.data.forEach((doc: AllWorkOut, index: number) => {
+      res.data.forEach((doc: WorkOut, index: number) => {
         allWrkOut.push(doc);
       });
-      setShowModal(false);
+      console.log(allWrkOut);
+      setOpenWrkOut(true);
+      // setShowModal(false);
       setShowToast({ show: true, msg: "Workout Added", color: "success" });
       setShowLoader({ show: false, msg: "" });
     }
   };
 
   const addWrkOut = async () => {
+    allWrkOut = [];
+    setOpenWrkOut(false);
     setShowModal(!showModal);
   };
 
@@ -294,7 +311,8 @@ const Home: React.FC = () => {
     workout.set = [];
     workout.time = moment(dateFilter).format("LT");
     // workout.createdAt = new Date(dateFilter);
-    workout.createdAt = moment(dateFilter).format();
+    // workout.createdAt = moment(dateFilter).format();
+    workout.createdAt = Timestamp.fromDate(new Date(dateFilter));
     workout.date = moment(dateFilter).format("L");
 
     const res = await createDoc("myWorkOut", workout);
@@ -419,42 +437,72 @@ const Home: React.FC = () => {
         <IonModal isOpen={showModal}>
           <IonHeader>
             <IonToolbar color="primary">
-              <IonTitle>Body Parts</IonTitle>
+              {allWrkOut.length === 0 && !openWrkOut ? (
+                <IonTitle>Body Parts</IonTitle>
+              ) : (
+                <>
+                  <IonTitle>Work-Outs</IonTitle>{" "}
+                  <IonButtons color="dark" slot="start">
+                    <IonButton onClick={() => { allWrkOut = []; setOpenWrkOut(false) }}>
+                      {" "}
+                      <IonIcon icon={arrowBack}></IonIcon>{" "}
+                    </IonButton>
+                  </IonButtons>
+                </>
+              )}
+
               <IonButtons color="dark" slot="end">
                 <IonButton onClick={() => setShowModal(false)}>CLOSE</IonButton>
               </IonButtons>
             </IonToolbar>
+            {allWrkOut.length === 0 && !openWrkOut ? null : (
+              <IonToolbar color="primary">
+                <IonSearchbar
+                  value={searchText}
+                  onIonChange={(e) => setSearchText(e.detail.value!)}
+                  animated
+                ></IonSearchbar>
+              </IonToolbar>
+            )}
           </IonHeader>
           <IonContent className="content ion-padding" fullscreen>
-            <div className="note">
-              <IonList>
-                {allWrkOut.map((item, index) => (
-                  <IonItem className="moadlItem" key={index}>
-                    <IonIcon slot="end" color="primary" name={close} />
-                    <IonLabel className="ion-text-capitalize">
-                      {item.bodyPart}
-                    </IonLabel>
-                    <IonSelect
-                      interface="popover"
-                      placeholder="Select"
-                      onIonChange={(e) =>
-                        selectWrkOut(e, item.bodyPart, item.id)
-                      }
-                    >
-                      {item.workouts.map((wrkout, index) => (
-                        <IonSelectOption
-                          className="ion-text-capitalize"
-                          value={wrkout.name}
-                          key={index}
-                        >
-                          {wrkout.name}
-                        </IonSelectOption>
-                      ))}
-                    </IonSelect>
-                  </IonItem>
-                ))}
-              </IonList>
-            </div>
+            {allWrkOut.length === 0 && !openWrkOut ? (
+              <div className="note">
+                <IonList>
+                  {bodyPart.map((part, index) => (
+                    <IonItem onClick={() => getAllWrkOut(part)}>
+                      <IonIcon icon={pulse} color="primary"></IonIcon>
+                      <IonLabel className="ion-margin-start">
+                        {capitalize(part)}
+                      </IonLabel>
+                    </IonItem>
+                  ))}
+                </IonList>
+              </div>
+            ) : (
+              <div>
+                <IonList>
+                  {allWrkOut.filter((val) => {
+                    if (searchText === "") {
+                      return val
+                    } else if (val.name.toLowerCase().includes(searchText.toLowerCase())) {
+                      return val
+                    } else if (val.equipment.toLowerCase().includes(searchText.toLowerCase())) {
+                      return val
+                    }
+                  }).map((wrk, index) => (
+                    <IonItem>
+                      <IonAvatar slot="start">
+                        <img src={wrk.gifUrl} />
+                      </IonAvatar>
+                      <IonLabel className="ion-margin-start">
+                        {capitalize(wrk.name)}
+                      </IonLabel>
+                    </IonItem>
+                  ))}
+                </IonList>
+              </div>
+            )}
           </IonContent>
         </IonModal>
         {/* ****************MODAL **************************/}
@@ -489,7 +537,7 @@ const Home: React.FC = () => {
               role: "cancel",
               cssClass: "secondary",
               id: "cancel-button",
-              handler: (blah) => {},
+              handler: (blah) => { },
             },
             {
               text: "Add",
@@ -591,7 +639,7 @@ const Home: React.FC = () => {
               role: "cancel",
               cssClass: "secondary",
               id: "cancel-button",
-              handler: (blah) => {},
+              handler: (blah) => { },
             },
             {
               text: "Add",
@@ -643,7 +691,7 @@ const Home: React.FC = () => {
               role: "cancel",
               cssClass: "secondary",
               id: "cancel-button",
-              handler: (blah) => {},
+              handler: (blah) => { },
             },
             {
               text: "Confirm",
@@ -750,31 +798,25 @@ const Home: React.FC = () => {
           <IonRow className="ion-text-center">
             <IonCol size="6">
               <IonCard color="light">
-                <IonCardHeader>
+                <IonCardContent className="ion-text-center goal">
                   <IonLabel className="ion-text-center ion-text-uppercase">
                     YOUR GOAL
                   </IonLabel>
-                  {/* <IonCardSubtitle color={msg.color}>{msg.msg}</IonCardSubtitle> */}
-                </IonCardHeader>
-
-                <IonCardContent className="ion-text-center goal">
                   <p> {goal} Kg </p>
                 </IonCardContent>
               </IonCard>
             </IonCol>
             <IonCol size="6">
               <IonCard color="light">
-                <IonCardHeader>
-                  <IonLabel className="ion-text-center">
-                    CURRENT WEIGHT
-                  </IonLabel>
-                </IonCardHeader>
                 <IonCardContent
                   className="ion-text-center goal"
                   onClick={() =>
                     myWeight.weight ? null : setShowGoalAlert(true)
                   }
                 >
+                  <IonLabel className="ion-text-center ion-text-uppercase">
+                    CURRENT WEIGHT
+                  </IonLabel>
                   {myWeight.weight ? (
                     <p> {myWeight.weight} Kg </p>
                   ) : (
@@ -788,52 +830,61 @@ const Home: React.FC = () => {
           </IonRow>
         </div>
 
-        <div className="note">
-          {myWrkOut.map((item, index) => (
-            <IonCard key={index} className="ion-margin-vertical">
-              <IonItem className="ion-activated">
-                <IonLabel color="primary">{item.workout}</IonLabel>
-                <IonLabel
-                  className="ion-text-uppercase"
-                  slot="end"
-                  color="medium"
-                >
-                  {item.bodyPart}
-                </IonLabel>
-                <IonButtons slot="end">
-                  <IonButton id={item.id}>
-                    <IonIcon color="medium" icon={ellipsisVertical}></IonIcon>
-                  </IonButton>
-                </IonButtons>
-              </IonItem>
-              <IonCardContent className="ion-justify-content-center">
-                <IonRow>
-                  {item.set.map((items, index) => (
-                    <IonCol
-                      key={index}
-                      onClick={() => deleteSet(item, items, index)}
-                    >
-                      <div className="set">
-                        <h4 style={{ fontWeight: "bold" }}>SET {index + 1}</h4>
-                        <h6>
-                          {items.weight} <span>Kg</span>
-                        </h6>
-                        <h6>
-                          {items.rep} <span>Rep</span>
-                        </h6>
-                      </div>
-                    </IonCol>
-                  ))}
-                </IonRow>
+        <div className="note-root">
+          <div className="note">
+            {myWrkOut.map((item, index) => (
+              <IonCard key={index} className="ion-margin-vertical">
+                <IonItem className="ion-activated">
+                  <IonLabel color="primary">{item.workout}</IonLabel>
+                  <IonLabel
+                    className="ion-text-uppercase"
+                    slot="end"
+                    color="medium"
+                  >
+                    {item.bodyPart}
+                  </IonLabel>
+                  <IonButtons slot="end">
+                    <IonButton id={item.id}>
+                      <IonIcon color="medium" icon={ellipsisVertical}></IonIcon>
+                    </IonButton>
+                  </IonButtons>
+                </IonItem>
+                <IonCardContent className="ion-justify-content-center">
+                  <IonRow>
+                    {item.set.map((items, index) => (
+                      <IonCol
+                        key={index}
+                        onClick={() => deleteSet(item, items, index)}
+                      >
+                        <div className="set">
+                          <h4 style={{ fontWeight: "bold" }}>
+                            SET {index + 1}
+                          </h4>
+                          <h6>
+                            {items.weight} <span>Kg</span>
+                          </h6>
+                          <h6>
+                            {items.rep} <span>Rep</span>
+                          </h6>
+                        </div>
+                      </IonCol>
+                    ))}
+                  </IonRow>
 
-                <IonRow className="ion-float-right">
-                  <IonCol onClick={() => addWrkOutData(item)}>
-                    <IoAddSharp size={25} />
-                  </IonCol>
-                </IonRow>
-              </IonCardContent>
-            </IonCard>
-          ))}
+                  <IonRow className="ion-float-right">
+                    <IonCol onClick={() => addWrkOutData(item)}>
+                      {/* <IonButtons>
+                      <IonButton slot="start">
+                        <IonIcon size="small" icon={add}></IonIcon>
+                      </IonButton>
+                    </IonButtons> */}
+                      <IoAddSharp size={25} />
+                    </IonCol>
+                  </IonRow>
+                </IonCardContent>
+              </IonCard>
+            ))}
+          </div>
         </div>
         <IonFab
           vertical="bottom"

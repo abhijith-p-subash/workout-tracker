@@ -105,15 +105,15 @@ const Progress = () => {
       },
     ];
 
-    let orderBy: OrderBy = {
-      field: "createdAt",
-      direction: "desc",
-      startAt: new Date(dateRange.$gte),
-      endAt: new Date(dateRange.$lte),
-    };
+    // let orderBy: OrderBy = {
+    //   field: "createdAt",
+    //   direction: "desc",
+    //   startAt: new Date(dateRange.$gte),
+    //   endAt: new Date(dateRange.$lte),
+    // };
 
     setShowLoader({ show: true, msg: "Loading..." });
-    const res: Res = await getWithQueryOrder("myWorkOut", filter, orderBy);
+    const res: Res = await getWithQueryOrder("myWorkOut", filter, {});
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
       setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
@@ -127,7 +127,8 @@ const Progress = () => {
       myWrkOut.forEach((doc: MyWorkOut, index: number) => {
         let kg: number = 0;
         let oldKg: number = 0;
-        let m = new Date(doc.createdAt);
+        // let m = new Date(doc.createdAt);
+        let m = new Date();
         doc.set.forEach((set: Set, index: number) => {
           kg += parseInt(set.weight);
         });

@@ -110,7 +110,7 @@ const Profile = () => {
             </div>
             <IonCardContent className='ion-text-center'>
               <h2>{user.name}</h2>
-              <IonLabel color={msg.color}>{msg.msg}</IonLabel>
+              {BMI > 0 ? <IonLabel color={msg.color}>{msg.msg}</IonLabel> : null}
               <IonText color='medium'>
                 <div className='ion-justify-content-center' style={{ display: 'flex' }}>
                   {auth.currentUser?.emailVerified ? <p>Verified</p> : <> <p>Please Verify Your Email</p> <IonIcon color='primary' className='ion-margin-start' size='small' icon={arrowRedo} ></IonIcon></>}

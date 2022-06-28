@@ -93,7 +93,7 @@ const App: React.FC = () => {
 /> */}
         <Route exact path="/home" ><Home/></Route>
         <Route exact path="/">{auth.currentUser?.uid ? <Redirect to="/home" /> :<Redirect to="/login" />}</Route>
-        <Route exact path="/info/:wrkout/:id"><Info /></Route>
+        <Route exact path="/info/:id"> <Info /></Route>
         <Route exact path="/profile"><Profile /></Route>
         <Route exact path="/update-profile/:id"><EditProfile /></Route>
         <Route exact path="/bmi-calculator"><Calculator /></Route>

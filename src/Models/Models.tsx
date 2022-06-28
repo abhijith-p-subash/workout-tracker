@@ -34,7 +34,7 @@ export interface MyWorkOut {
   uid?: string;
   bodyPartID?: string;
   bodyPart: string;
-  workout: string;
+  workout: WorkOut;
   set: Set[];
   date?: string;
   time: string;

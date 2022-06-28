@@ -140,13 +140,6 @@ const Home: React.FC = () => {
   const history = useHistory();
 
   useIonViewWillEnter(() => {
-    Axios.get("")
-      .then((res) => {
-        console.log(res.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
     getData();
     getUser();
     getCurrentWeight();
@@ -210,6 +203,8 @@ const Home: React.FC = () => {
 
     setShowLoader({ show: true, msg: "Loading..." });
     const res: Res = await getWithQueryOrder("myWorkOut", filter, orderBy);
+    console.log(res);
+    
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
       setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
@@ -242,7 +237,7 @@ const Home: React.FC = () => {
       console.log(allWrkOut);
       setOpenWrkOut(true);
       // setShowModal(false);
-      setShowToast({ show: true, msg: "Workout Added", color: "success" });
+      // setShowToast({ show: true, msg: "", color: "success" });
       setShowLoader({ show: false, msg: "" });
     }
   };
@@ -296,18 +291,20 @@ const Home: React.FC = () => {
   };
 
   const selectWrkOut = async (
-    event: any,
-    bodyPart: string,
-    partIndex: string
+    // event: any,
+    // bodyPart: string,
+    // partIndex: string
+    wrk:WorkOut
   ) => {
     setShowLoader({ show: true, msg: "Loading..." });
     let workout: MyWorkOut = {} as MyWorkOut,
       user = auth.currentUser;
 
     workout.uid = user?.uid;
-    workout.bodyPartID = partIndex;
-    workout.bodyPart = `${bodyPart}`;
-    workout.workout = event.target.value;
+    // workout.bodyPartID = partIndex;
+    // workout.bodyPart = `${bodyPart}`;
+    // workout.workout = event.target.value;
+    workout.workout = wrk;
     workout.set = [];
     workout.time = moment(dateFilter).format("LT");
     // workout.createdAt = new Date(dateFilter);
@@ -470,7 +467,7 @@ const Home: React.FC = () => {
               <div className="note">
                 <IonList>
                   {bodyPart.map((part, index) => (
-                    <IonItem onClick={() => getAllWrkOut(part)}>
+                    <IonItem key={index} onClick={() => getAllWrkOut(part)}>
                       <IonIcon icon={pulse} color="primary"></IonIcon>
                       <IonLabel className="ion-margin-start">
                         {capitalize(part)}
@@ -491,7 +488,7 @@ const Home: React.FC = () => {
                       return val
                     }
                   }).map((wrk, index) => (
-                    <IonItem>
+                    <IonItem key={index} onClick={()=>selectWrkOut(wrk)}>
                       <IonAvatar slot="start">
                         <img src={wrk.gifUrl} />
                       </IonAvatar>
@@ -515,8 +512,8 @@ const Home: React.FC = () => {
             setAddBtn(false);
           }}
           cssClass="my-custom-class"
-          header={`${dataToAlert?.workout}`}
-          subHeader={`${dataToAlert?.bodyPart}`}
+          header={`${dataToAlert?.workout.name}`}
+          subHeader={`${dataToAlert?.workout.bodyPart}`}
           inputs={[
             {
               name: "weight",
@@ -546,8 +543,8 @@ const Home: React.FC = () => {
                 mySet.push(data);
                 let obj = myWrkOut.find(
                   (res) =>
-                    res.bodyPart === dataToAlert?.bodyPart &&
-                    res.workout === dataToAlert?.workout
+                    res.workout.bodyPart === dataToAlert?.workout.bodyPart &&
+                    res.workout.name === dataToAlert?.workout.name
                 );
                 dataToAlert?.set.push(data);
                 await update("myWorkOut", dataToAlert?.id, dataToAlert);
@@ -559,13 +556,15 @@ const Home: React.FC = () => {
 
         {/* ****************POPOVER **************************/}
         {myWrkOut.map((item, index) => (
-          <IonPopover trigger={item.id} dismissOnSelect={true}>
+          <IonPopover key={index} trigger={item.id} dismissOnSelect={true}>
             <IonContent>
               <IonList>
                 <IonItem
-                  onClick={() =>
-                    history.push(`/info/${item.workout}/${item.bodyPartID}`)
-                  }
+                  // onClick={() =>
+                  //   history.push(`/info/${item.workout.id}`)
+                  // }
+                  routerLink={`/info/${item.workout.id}`}
+                  routerDirection="forward"
                   button={true}
                   detail={false}
                 >
@@ -833,15 +832,15 @@ const Home: React.FC = () => {
         <div className="note-root">
           <div className="note">
             {myWrkOut.map((item, index) => (
-              <IonCard key={index} className="ion-margin-vertical">
+              <IonCard key={item.id} className="ion-margin-vertical">
                 <IonItem className="ion-activated">
-                  <IonLabel color="primary">{item.workout}</IonLabel>
+                  <IonLabel color="primary">{capitalize(item.workout.name)}</IonLabel>
                   <IonLabel
                     className="ion-text-uppercase"
                     slot="end"
                     color="medium"
                   >
-                    {item.bodyPart}
+                    {item.workout.bodyPart}
                   </IonLabel>
                   <IonButtons slot="end">
                     <IonButton id={item.id}>

@@ -69,7 +69,6 @@ const Menu = (props:any) => {
       res.data.forEach((doc: User, index: number) => {
         user = { ...doc };
       });
-      console.log(user);
       return user.name;
       
       setShowLoader({ show: false, msg: "" });

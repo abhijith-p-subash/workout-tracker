@@ -12,6 +12,7 @@ import {
     IonToast,
     useIonViewWillEnter
 } from "@ionic/react";
+import { SplashScreen } from '@capacitor/splash-screen';
 
 
 
@@ -40,7 +41,8 @@ const Login = () => {
         }));;
     }
 
-
+   
+      
     const handleSubmit = async (event: any) => {
         try {
             event.preventDefault();
@@ -56,7 +58,13 @@ const Login = () => {
                 history.push("/home");
             }
 
+          
+
             setLogindata({ email: "", password: "" });
+            // await SplashScreen.show({
+            //     showDuration: 2000,
+            //     autoHide: true
+            //   });
 
         } catch (error) {
             const err = JSON.parse(JSON.stringify(error))

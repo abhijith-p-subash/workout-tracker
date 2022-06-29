@@ -37,6 +37,7 @@ import {
   IonCardSubtitle,
   IonAvatar,
   IonSearchbar,
+  IonImg,
 } from "@ionic/react";
 
 import {
@@ -155,9 +156,6 @@ const Home: React.FC = () => {
       },
     ];
     const res: Res = await getWithQuery("users", filter);
-    console.log(res);
-
-    console.log(auth.currentUser);
 
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
@@ -203,8 +201,7 @@ const Home: React.FC = () => {
 
     setShowLoader({ show: true, msg: "Loading..." });
     const res: Res = await getWithQueryOrder("myWorkOut", filter, orderBy);
-    console.log(res);
-    
+
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
       setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
@@ -224,7 +221,6 @@ const Home: React.FC = () => {
     setShowLoader({ show: true, msg: "Loading..." });
     let filter = [{ field: "bodyPart", operator: "==", value: part }];
     const res: Res = await getWithQuery("exercises", filter);
-    console.log(res);
 
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
@@ -234,7 +230,7 @@ const Home: React.FC = () => {
       res.data.forEach((doc: WorkOut, index: number) => {
         allWrkOut.push(doc);
       });
-      console.log(allWrkOut);
+
       setOpenWrkOut(true);
       // setShowModal(false);
       // setShowToast({ show: true, msg: "", color: "success" });
@@ -294,7 +290,7 @@ const Home: React.FC = () => {
     // event: any,
     // bodyPart: string,
     // partIndex: string
-    wrk:WorkOut
+    wrk: WorkOut
   ) => {
     setShowLoader({ show: true, msg: "Loading..." });
     let workout: MyWorkOut = {} as MyWorkOut,
@@ -362,7 +358,6 @@ const Home: React.FC = () => {
       { field: "date", operator: "==", value: moment().format("L") },
     ];
     const res: Res = await getWithQuery("myWeight", filter);
-    console.log(res);
 
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
@@ -440,7 +435,12 @@ const Home: React.FC = () => {
                 <>
                   <IonTitle>Work-Outs</IonTitle>{" "}
                   <IonButtons color="dark" slot="start">
-                    <IonButton onClick={() => { allWrkOut = []; setOpenWrkOut(false) }}>
+                    <IonButton
+                      onClick={() => {
+                        allWrkOut = [];
+                        setOpenWrkOut(false);
+                      }}
+                    >
                       {" "}
                       <IonIcon icon={arrowBack}></IonIcon>{" "}
                     </IonButton>
@@ -478,25 +478,57 @@ const Home: React.FC = () => {
               </div>
             ) : (
               <div>
+                   <IonItem > <IonLabel className="ion-text-center" color="medium" >SWIPE LEFT OR RIGHT </IonLabel></IonItem>
                 <IonList>
-                  {allWrkOut.filter((val) => {
-                    if (searchText === "") {
-                      return val
-                    } else if (val.name.toLowerCase().includes(searchText.toLowerCase())) {
-                      return val
-                    } else if (val.equipment.toLowerCase().includes(searchText.toLowerCase())) {
-                      return val
-                    }
-                  }).map((wrk, index) => (
-                    <IonItem key={index} onClick={()=>selectWrkOut(wrk)}>
-                      <IonAvatar slot="start">
-                        <img src={wrk.gifUrl} />
-                      </IonAvatar>
-                      <IonLabel className="ion-margin-start">
-                        {capitalize(wrk.name)}
-                      </IonLabel>
-                    </IonItem>
-                  ))}
+              
+                  {allWrkOut
+                    .filter((val) => {
+                      if (searchText === "") {
+                        return val;
+                      } else if (
+                        val.name
+                          .toLowerCase()
+                          .includes(searchText.toLowerCase())
+                      ) {
+                        return val;
+                      } else if (
+                        val.equipment
+                          .toLowerCase()
+                          .includes(searchText.toLowerCase())
+                      ) {
+                        return val;
+                      }
+                    })
+                    .map((wrk, index) => (
+                      <IonItemSliding key={wrk.id}>
+                        <IonItemOptions side="start">
+                          <IonItemOption
+                            color="danger"
+                            onClick={() => {history.push(`/info/${wrk.id}`);setShowModal(false);}}
+                          >
+                            info
+                          </IonItemOption>
+                        </IonItemOptions>
+
+                        <IonItem key={index} >
+                          <IonAvatar slot="start">
+                            {/* <img src={wrk.gifUrl} /> */}
+                            <IonImg src={wrk.gifUrl} />
+                          </IonAvatar>
+                          <IonLabel className="ion-margin-start">
+                            {capitalize(wrk.name)}
+                          </IonLabel>
+                        </IonItem>
+
+                        <IonItemOptions side="end">
+                          <IonItemOption
+                             onClick={() => selectWrkOut(wrk)}
+                          >
+                            ADD
+                          </IonItemOption>
+                        </IonItemOptions>
+                      </IonItemSliding>
+                    ))}
                 </IonList>
               </div>
             )}
@@ -534,7 +566,7 @@ const Home: React.FC = () => {
               role: "cancel",
               cssClass: "secondary",
               id: "cancel-button",
-              handler: (blah) => { },
+              handler: (blah) => {},
             },
             {
               text: "Add",
@@ -614,11 +646,11 @@ const Home: React.FC = () => {
         </IonPopover>
         {/* ****************WATCH POPOVER **************************/}
 
-        {/* ****************SET DELETE ALERT **************************/}
+        {/* ****************GOAL ALERT **************************/}
         <IonAlert
           isOpen={showGoalAlert}
           onDidDismiss={() => {
-            setShowAlert(false);
+            setShowGoalAlert(false);
             setAddBtn(false);
           }}
           cssClass="my-custom-class"
@@ -638,13 +670,12 @@ const Home: React.FC = () => {
               role: "cancel",
               cssClass: "secondary",
               id: "cancel-button",
-              handler: (blah) => { },
+              handler: (blah) => {},
             },
             {
               text: "Add",
               id: "confirm-button",
               handler: async (data) => {
-                console.log(data);
                 setShowLoader({ show: true, msg: "Loading..." });
                 const res = await createDoc("myWeight", {
                   uid: auth.currentUser?.uid,
@@ -675,9 +706,9 @@ const Home: React.FC = () => {
           ]}
         />
 
-        {/* ****************SET DELETE ALERT **************************/}
+        {/* ****************GOAL ALERT**************************/}
 
-        {/* ****************GOAL ALERT **************************/}
+        {/* **************** SET DELETE ALERT **************************/}
         <IonAlert
           isOpen={showAlert3}
           onDidDismiss={() => setShowAlert3(false)}
@@ -690,7 +721,7 @@ const Home: React.FC = () => {
               role: "cancel",
               cssClass: "secondary",
               id: "cancel-button",
-              handler: (blah) => { },
+              handler: (blah) => {},
             },
             {
               text: "Confirm",
@@ -728,7 +759,7 @@ const Home: React.FC = () => {
           ]}
         />
 
-        {/* ****************GOAL ALERT **************************/}
+        {/* **************** SET DELETE ALERT **************************/}
 
         {watch.ctrl ? (
           <div className="timer-root ion-margin">
@@ -834,7 +865,9 @@ const Home: React.FC = () => {
             {myWrkOut.map((item, index) => (
               <IonCard key={item.id} className="ion-margin-vertical">
                 <IonItem className="ion-activated">
-                  <IonLabel color="primary">{capitalize(item.workout.name)}</IonLabel>
+                  <IonLabel color="primary">
+                    {capitalize(item.workout.name)}
+                  </IonLabel>
                   <IonLabel
                     className="ion-text-uppercase"
                     slot="end"

@@ -8,21 +8,11 @@ const AuthGuard = ({ component: Component, auth, ...rest }: any) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-      console.log(auth.currentUser?.uid);
       if (auth.currentUser?.uid) {
         setIsAuthenticated(true);
       }
-      console.log(isAuthenticated);
     },[])
 
-    // useIonViewWillEnter(() => {
-    //   console.log(auth.currentUser?.uid);
-    //   if (auth.currentUser?.uid) {
-    //     setIsAuthenticated(true);
-    //   }
-    //   console.log(isAuthenticated);
-      
-    // },[]);
     return <Route {...rest} render={(props) => (
         isAuthenticated ? <Component {...props} /> : <Redirect to='/login' />
     )} />

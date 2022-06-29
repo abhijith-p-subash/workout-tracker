@@ -119,7 +119,8 @@ const Info = () => {
                 </IonRow>
                 <IonRow className="ion-margin">
                     <div>
-                        <img src={workout.gifUrl} alt="img"  />
+                        {/* <img style={{borderRadius:10}} src={workout.gifUrl} alt="img"  /> */}
+                        <IonImg src={workout.gifUrl}/>
                     </div>
                 </IonRow>
               </IonCardContent>

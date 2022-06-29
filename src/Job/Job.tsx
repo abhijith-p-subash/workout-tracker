@@ -35,8 +35,7 @@ export const chunks = (array: any[], size: number) => {
 }
 
 export const compare = (a:MyWorkOut, b:MyWorkOut) => {
-    // console.log(a);
-    // console.log(b);
+ 
     
     
     if (moment(a.createdAt).format() > moment(b.createdAt).format()) {

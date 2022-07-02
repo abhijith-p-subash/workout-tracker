@@ -70,6 +70,8 @@ const Info = () => {
 
       workout = res.data;
 
+      console.log(workout);
+      
       setShowToast({ show: true, msg: "Workout Added", color: "success" });
       setShowLoader({ show: false, msg: "" });
 
@@ -119,8 +121,7 @@ const Info = () => {
                 </IonRow>
                 <IonRow className="ion-margin">
                     <div>
-                        {/* <img style={{borderRadius:10}} src={workout.gifUrl} alt="img"  /> */}
-                        <IonImg src={workout.gifUrl}/>
+                           <IonImg src={workout.url}/>
                     </div>
                 </IonRow>
               </IonCardContent>

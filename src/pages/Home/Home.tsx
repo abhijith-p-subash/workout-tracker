@@ -512,8 +512,8 @@ const Home: React.FC = () => {
 
                         <IonItem key={index} >
                           <IonAvatar slot="start">
-                            {/* <img src={wrk.gifUrl} /> */}
-                            <IonImg src={wrk.gifUrl} />
+                        
+                            <IonImg src={wrk.url} />
                           </IonAvatar>
                           <IonLabel className="ion-margin-start">
                             {capitalize(wrk.name)}

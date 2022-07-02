@@ -200,7 +200,7 @@ const Profile = () => {
             </IonSegmentButton>
           </IonSegment>
           {segment === "personal" && (
-            <div className="ion-margin-vertical">
+            <div className="ion-margin-vertical ion-content">
               <IonItem>
                 <IonIcon
                   className="ion-margin-horizontal"

@@ -1,44 +1,29 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   IonMenu,
   IonHeader,
   IonToolbar,
-  IonTitle,
   IonContent,
   IonList,
   IonItem,
   IonIcon,
   IonLabel,
   IonMenuToggle,
-  useIonViewWillEnter,
   useIonViewDidEnter,
-  IonAvatar,
-  IonRow,
-  IonCol,
 } from "@ionic/react";
 import { useHistory } from "react-router";
 
 import { auth } from "../../firebase/FireBase-config";
 import { signOut } from "firebase/auth";
-
-import { MdHome } from "react-icons/md";
-import { IoLogOut, IoPersonSharp } from "react-icons/io5";
-import {
-  golf,
-  barChart,
-  home,
-  person,
-  logOut,
-  calculator,
-} from "ionicons/icons";
+import { barChart, home, person, logOut, calculator } from "ionicons/icons";
 import { Filter, Res, User } from "../../Models/Models";
 import { getWithQuery } from "../../firebase/FireBase-services";
 
-import "./Menu.css"
+import "./Menu.css";
 
 let user: User = {} as User;
 
-const Menu = (props:any) => {
+const Menu = (props: any) => {
   const [showLoader, setShowLoader] = useState({ show: false, msg: "" || {} });
   const [segment, setSegment] = useState("personal" || undefined);
   const [showToast, setShowToast] = useState({
@@ -48,20 +33,20 @@ const Menu = (props:any) => {
   });
   const history = useHistory();
 
-
-
   useIonViewDidEnter(() => {
     getUser();
-  })
-  
+  });
 
   const getUser = async () => {
     setShowLoader({ show: true, msg: "Loading..." });
     let filter: Filter[] = [
-      { field: "uid", operator: "==", value: auth.currentUser?.uid || localStorage.getItem("uid") },
+      {
+        field: "uid",
+        operator: "==",
+        value: auth.currentUser?.uid || localStorage.getItem("uid"),
+      },
     ];
-    const res: Res = await getWithQuery("users", filter,);
-
+    const res: Res = await getWithQuery("users", filter);
 
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
@@ -72,10 +57,10 @@ const Menu = (props:any) => {
         user = { ...doc };
       });
       return user.name;
-      
+
       setShowLoader({ show: false, msg: "" });
     }
-  }
+  };
 
   const LogOut = async () => {
     try {
@@ -98,8 +83,6 @@ const Menu = (props:any) => {
     >
       <IonHeader>
         <IonToolbar color="primary">
-        
-
           <IonItem className="ion-text-center" color="primary">
             {/* <IonAvatar
               slot="start"
@@ -110,7 +93,9 @@ const Menu = (props:any) => {
                 alt=""
               />
             </IonAvatar> */}
-            <IonLabel ><span className="menu-heading">AJ-Squad</span></IonLabel>
+            <IonLabel>
+              <span className="menu-heading">AJ-Squad</span>
+            </IonLabel>
           </IonItem>
         </IonToolbar>
       </IonHeader>

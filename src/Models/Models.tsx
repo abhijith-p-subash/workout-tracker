@@ -64,7 +64,7 @@ export interface WorkOut {
   id: string;
   name: string;
   target: string;
-  url:string;
+  url: string;
 }
 export interface Res {
   error?: boolean;

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { IonLoading } from '@ionic/react';
 
 const Loader = ({open, msg}:any) => {

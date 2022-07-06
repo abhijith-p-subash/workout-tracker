@@ -24,6 +24,7 @@
     "axios": "^0.27.2",
     "chart.js": "^3.8.0",
     "cordova-sqlite-storage": "^6.0.0",
+    "env-cmd": "^10.1.0",
     "firebase": "^9.8.1",
     "ionicons": "^5.5.4",
     "moment": "^2.29.3",
@@ -51,8 +52,8 @@
     "workbox-streams": "^5.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start": "env-cmd -f .env react-scripts start",
+    "build": "env-cmd -f .env react-scripts build",
     "test": "react-scripts test --transformIgnorePatterns 'node_modules/(?!(@ionic/react|@ionic/react-router|@ionic/core|@stencil/core|ionicons)/)'",
     "eject": "react-scripts eject"
   },

@@ -1,5 +1,5 @@
 import { IonAlert } from '@ionic/react'
-import React from 'react'
+
 
 const Alert = (props:any) => {
   return (

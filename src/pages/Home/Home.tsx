@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import {
   IonContent,
   IonPage,
@@ -20,21 +20,13 @@ import {
   IonHeader,
   IonList,
   IonPopover,
-  IonSelect,
-  IonSelectOption,
   IonToast,
   useIonViewWillEnter,
-  useIonViewDidEnter,
-  useIonPopover,
   IonMenuButton,
   IonDatetime,
-  IonText,
-  IonFabList,
   IonItemSliding,
   IonItemOptions,
   IonItemOption,
-  IonCardHeader,
-  IonCardSubtitle,
   IonAvatar,
   IonSearchbar,
   IonImg,
@@ -44,22 +36,14 @@ import {
   add,
   ellipsisVertical,
   close,
-  refresh,
   trashOutline,
   informationCircleOutline,
-  chevronDownOutline,
-  calendarNumberOutline,
   calendarOutline,
-  stopwatchOutline,
   play,
   pause,
-  timer,
-  hourglass,
   timerOutline,
   hourglassOutline,
   stop,
-  logoVimeo,
-  swapHorizontal,
   pulse,
   arrowBack,
 } from "ionicons/icons";
@@ -67,16 +51,12 @@ import {
 import { auth } from "../../firebase/FireBase-config";
 import { useHistory } from "react-router";
 
-import { IoAddSharp, IoClose } from "react-icons/io5";
-import Header from "../../components/Header/Header";
+import { IoAddSharp, } from "react-icons/io5";
 import Loader from "../../components/Loader/Loader";
-import Tabs from "../../components/Tab/Tab";
-import { wrkouts } from "../../assets/data/seed";
 import {
   MyWorkOut,
   Res,
   Filter,
-  AllWorkOut,
   Set,
   OrderBy,
   User,
@@ -88,17 +68,12 @@ import {
   getWithQuery,
   update,
   deleteOne,
-  getAll,
-  getWithQueryOrder,
   getHomeData,
 } from "../../firebase/FireBase-services";
 
-import { Job, chunks, compare } from "../../Job/Job";
 import moment from "moment";
-import Axios from "../../Axios/Axios";
 import { bodyPart } from "../../Seeder/BodyPart";
 import { capitalize } from "../../Util/Util";
-
 import "./Home.css";
 import { Timestamp } from "firebase/firestore";
 
@@ -213,7 +188,7 @@ const Home: React.FC = () => {
         myWrkOut.push(doc);
       });
       setShowModal(false);
-      setShowToast({ show: true, msg: "Workout Added", color: "success" });
+      // setShowToast({ show: true, msg: "Workout Added", color: "success" });
       setShowLoader({ show: false, msg: "" });
     }
   };
@@ -480,9 +455,13 @@ const Home: React.FC = () => {
               </div>
             ) : (
               <div>
-                   <IonItem > <IonLabel className="ion-text-center" color="medium" >SWIPE LEFT OR RIGHT </IonLabel></IonItem>
+                <IonItem>
+                  {" "}
+                  <IonLabel className="ion-text-center" color="medium">
+                    SWIPE LEFT OR RIGHT{" "}
+                  </IonLabel>
+                </IonItem>
                 <IonList>
-              
                   {allWrkOut
                     .filter((val) => {
                       if (searchText === "") {
@@ -506,15 +485,17 @@ const Home: React.FC = () => {
                         <IonItemOptions side="start">
                           <IonItemOption
                             color="danger"
-                            onClick={() => {history.push(`/info/${wrk.id}`);setShowModal(false);}}
+                            onClick={() => {
+                              history.push(`/info/${wrk.id}`);
+                              setShowModal(false);
+                            }}
                           >
                             info
                           </IonItemOption>
                         </IonItemOptions>
 
-                        <IonItem key={index} >
+                        <IonItem key={index}>
                           <IonAvatar slot="start">
-                   
                             <IonImg src={wrk.url} />
                           </IonAvatar>
                           <IonLabel className="ion-margin-start">
@@ -523,9 +504,7 @@ const Home: React.FC = () => {
                         </IonItem>
 
                         <IonItemOptions side="end">
-                          <IonItemOption
-                             onClick={() => selectWrkOut(wrk)}
-                          >
+                          <IonItemOption onClick={() => selectWrkOut(wrk)}>
                             ADD
                           </IonItemOption>
                         </IonItemOptions>
@@ -549,13 +528,12 @@ const Home: React.FC = () => {
           header={capitalize(`${dataToAlert?.workout.name}`)}
           subHeader={capitalize(`${dataToAlert?.workout.bodyPart}`)}
           inputs={[
-            
             {
               name: "weight",
               type: "number",
               placeholder: "10 Kg",
               label: "Weight",
-              disabled: dataToAlert?.workout.equipment === "body weight"
+              disabled: dataToAlert?.workout.equipment === "body weight",
             },
             {
               name: "rep",

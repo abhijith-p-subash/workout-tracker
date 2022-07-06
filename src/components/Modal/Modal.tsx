@@ -1,29 +1,33 @@
-import React,{useState} from 'react';
-import { IonButton, IonButtons, IonHeader, IonIcon, IonMenuButton, IonModal, IonTitle, IonToolbar } from '@ionic/react';
-import {close} from 'ionicons/icons';
+import React, { useState } from "react";
+import {
+  IonButton,
+  IonButtons,
+  IonHeader,
+  IonIcon,
+  IonModal,
+  IonTitle,
+  IonToolbar,
+} from "@ionic/react";
+import { close } from "ionicons/icons";
 
-import Header from '../Header/Header'; 
-
-
-const Modal = (props:any) => {
-    const [showModal, setShowModal] = useState(false);
+const Modal = (props: any) => {
+  const [showModal, setShowModal] = useState(false);
   return (
-      
-    <IonModal isOpen={showModal ? !showModal : props.showModal } >
-        <IonHeader>
-        <IonToolbar  color='primary'>
+    <IonModal isOpen={showModal ? !showModal : props.showModal}>
+      <IonHeader>
+        <IonToolbar color="primary">
           <IonTitle>Modal</IonTitle>
-            <IonButtons color='dark'  slot="end">
-            <IonButton >
-                <IonIcon name={close}></IonIcon>
+          <IonButtons color="dark" slot="end">
+            <IonButton>
+              <IonIcon name={close}></IonIcon>
             </IonButton>
           </IonButtons>
         </IonToolbar>
       </IonHeader>
-        <p>This is modal content</p>
-        <IonButton onClick={() => setShowModal(true)}>Close Modal</IonButton>
-      </IonModal>
-  )
-}
+      <p>This is modal content</p>
+      <IonButton onClick={() => setShowModal(true)}>Close Modal</IonButton>
+    </IonModal>
+  );
+};
 
 export default Modal;

@@ -1,23 +1,15 @@
 import {
-  IonAccordion,
-  IonAccordionGroup,
-  IonButton,
   IonButtons,
   IonCard,
   IonCardContent,
-  IonCol,
   IonContent,
   IonDatetime,
   IonHeader,
-  IonIcon,
-  IonInput,
   IonItem,
   IonLabel,
-  IonList,
   IonMenuButton,
   IonPage,
   IonPopover,
-  IonRow,
   IonSegment,
   IonSegmentButton,
   IonSelect,
@@ -26,14 +18,12 @@ import {
   IonToolbar,
   useIonViewWillEnter,
 } from "@ionic/react";
-import React, { useEffect, useState } from "react";
+import  { useState } from "react";
 import { Timestamp } from "firebase/firestore";
 import Loader from "../../components/Loader/Loader";
-import { UserData } from "../../assets/data/seed";
-import { Bar, Line, Radar, Scatter } from "react-chartjs-2";
+import { Line, Radar,} from "react-chartjs-2";
 import { Chart, registerables } from "chart.js";
 import { Chart as ChartJS } from "chart.js/auto";
-import { calendarOutline } from "ionicons/icons";
 import moment from "moment";
 import {
   Filter,
@@ -178,7 +168,6 @@ const Progress = () => {
       labels.forEach((month, index) => {
         let filterArr = myWrkOut.filter((wrk) => {
           let m = moment(new Date(wrk.createdAt.toDate()));
-          console.log(m.month());
 
           return m.month() - 1 === index;
         });
@@ -199,7 +188,6 @@ const Progress = () => {
     wrkOut1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     setShowLoader({ show: true, msg: "Loading..." });
     setBPart(param === "" ? e.target.value : param);
-    console.log(bPart);
 
     myWrkOut1 = [];
     let filter: Filter[] = [
@@ -396,105 +384,105 @@ const Progress = () => {
             </IonAccordionGroup>
           </IonCardContent>
         </IonCard> */}
-    <div style={{marginTop:20}}>
-    <IonSegment
-          value={segment}
-          select-on-focus
-          swipeGesture
-          onIonChange={(e) => {
-            setSegment(`${e.detail.value}`);
-          }}
-        >
-          <IonSegmentButton value="lift">
-            <IonLabel>WEIGHT LIFT</IonLabel>
-          </IonSegmentButton>
-          <IonSegmentButton value="lose">
-            <IonLabel>WEIGHT LOSE</IonLabel>
-          </IonSegmentButton>
-        </IonSegment>
-        {segment === "lift" && (
-          <div className="ion-margin-vertical ion-content">
-            <IonItem className="ion-margin">
-              <IonSelect
-                interface="action-sheet"
-                placeholder="Back"
-                // value={bPart}
-                onIonChange={(e) => {
-                  handleWeightLift(e, "");
-                }}
-              >
-                {bodyPart.map((item: string, index: number) => (
-                  <IonSelectOption key={index} value={item}>
-                    {capitalize(item)}
-                  </IonSelectOption>
-                ))}
-              </IonSelect>
-            </IonItem>
+        <div style={{ marginTop: 20 }}>
+          <IonSegment
+            value={segment}
+            select-on-focus
+            swipeGesture
+            onIonChange={(e) => {
+              setSegment(`${e.detail.value}`);
+            }}
+          >
+            <IonSegmentButton value="lift">
+              <IonLabel>WEIGHT LIFT</IonLabel>
+            </IonSegmentButton>
+            <IonSegmentButton value="lose">
+              <IonLabel>WEIGHT LOSE</IonLabel>
+            </IonSegmentButton>
+          </IonSegment>
+          {segment === "lift" && (
+            <div className="ion-margin-vertical ion-content">
+              <IonItem className="ion-margin">
+                <IonSelect
+                  interface="action-sheet"
+                  placeholder="Back"
+                  // value={bPart}
+                  onIonChange={(e) => {
+                    handleWeightLift(e, "");
+                  }}
+                >
+                  {bodyPart.map((item: string, index: number) => (
+                    <IonSelectOption key={index} value={item}>
+                      {capitalize(item)}
+                    </IonSelectOption>
+                  ))}
+                </IonSelect>
+              </IonItem>
 
-            <IonCard className="ion-margin-vertical">
-              <IonCardContent>
-                <IonItem>
-                  <IonLabel>tres</IonLabel>
-                  <Line
-                    height={250}
-                    data={barChartData1}
-                    options={{ maintainAspectRatio: true }}
-                  />
-                </IonItem>
-              </IonCardContent>
-            </IonCard>
+              <IonCard className="ion-margin-vertical">
+                <IonCardContent>
+                  <IonItem>
+                    <IonLabel>tres</IonLabel>
+                    <Line
+                      height={250}
+                      data={barChartData1}
+                      options={{ maintainAspectRatio: true }}
+                    />
+                  </IonItem>
+                </IonCardContent>
+              </IonCard>
 
-            <IonCard className="ion-margin-vertical">
-              <IonCardContent>
-                <IonItem>
-                  <IonLabel>tres</IonLabel>
-                  <Radar
-                    data={barChartData1}
-                    options={{ maintainAspectRatio: true }}
-                  />
-                </IonItem>
-              </IonCardContent>
-            </IonCard>
-          </div>
-        )}
+              <IonCard className="ion-margin-vertical">
+                <IonCardContent>
+                  <IonItem>
+                    <IonLabel>tres</IonLabel>
+                    <Radar
+                      data={barChartData1}
+                      options={{ maintainAspectRatio: true }}
+                    />
+                  </IonItem>
+                </IonCardContent>
+              </IonCard>
+            </div>
+          )}
 
-        {segment === "lose" && (
-          <div className="ion-margin-vertical" color="medium">
-            <IonCard color="light">
-              <IonCardContent className="ion-text-center goal">
-                <IonLabel className="ion-text-center ion-text-uppercase">
-                  YOUR GOAL
-                </IonLabel>
-                <p> {goal} Kg </p>
-              </IonCardContent>
-            </IonCard>
-            <IonCard className="ion-margin-vertical">
-              <IonCardContent>
-                <IonItem>
-                  <IonLabel>tres</IonLabel>
-                  <Line
-                    height={250}
-                    data={barChartData}
-                    options={{ maintainAspectRatio: true }}
-                  />
-                </IonItem>
-              </IonCardContent>
-            </IonCard>
+          {segment === "lose" && (
+            <div className="ion-margin-vertical" color="medium">
+              <IonCard color="light">
+                <IonCardContent className="ion-text-center goal">
+                  <IonLabel className="ion-text-center ion-text-uppercase">
+                    YOUR GOAL
+                  </IonLabel>
+                  <p> {goal} Kg </p>
+                </IonCardContent>
+              </IonCard>
+              <IonCard className="ion-margin-vertical">
+                <IonCardContent>
+                  <IonItem>
+                    <IonLabel>tres</IonLabel>
+                    <Line
+                      height={250}
+                      data={barChartData}
+                      options={{ maintainAspectRatio: true }}
+                    />
+                  </IonItem>
+                </IonCardContent>
+              </IonCard>
 
-            <IonCard className="ion-margin-vertical">
-              <IonCardContent>
-                <IonItem>
-                  <IonLabel>tres</IonLabel>
-                  <Radar
-                    data={barChartData}
-                    options={{ maintainAspectRatio: true }}
-                  />
-                </IonItem>
-              </IonCardContent>
-            </IonCard>
-          </div>
-        )}
-    </div>
+              <IonCard className="ion-margin-vertical">
+                <IonCardContent>
+                  <IonItem>
+                    <IonLabel>tres</IonLabel>
+                    <Radar
+                      data={barChartData}
+                      options={{ maintainAspectRatio: true }}
+                    />
+                  </IonItem>
+                </IonCardContent>
+              </IonCard>
+            </div>
+          )}
+        </div>
       </IonContent>
     </IonPage>
   );

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useIonViewWillEnter, IonHeader, IonTitle, IonToolbar, IonMenuButton, IonButtons, IonButton, IonIcon, useIonViewDidEnter } from '@ionic/react';
-import {arrowBackOutline} from "ionicons/icons";
+import  { useState,  } from 'react';
+import {  IonHeader, IonTitle, IonToolbar, IonMenuButton, IonButtons, useIonViewDidEnter } from '@ionic/react';
 import { useHistory } from "react-router";
 
 

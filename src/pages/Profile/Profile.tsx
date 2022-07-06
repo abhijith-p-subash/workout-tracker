@@ -1,11 +1,8 @@
 import {
-  IonCol,
   IonContent,
   IonPage,
-  IonRow,
   IonTitle,
   IonToast,
-  IonAvatar,
   IonItem,
   IonLabel,
   IonCard,
@@ -21,10 +18,9 @@ import {
   IonHeader,
   IonToolbar,
 } from "@ionic/react";
-import React, { useState } from "react";
+import { useState } from "react";
 
 import Loader from "../../components/Loader/Loader";
-import Header from "../../components/Header/Header";
 import { auth } from "../../firebase/FireBase-config";
 import { getWithQuery } from "../../firebase/FireBase-services";
 

@@ -17,15 +17,19 @@ import { useHistory } from "react-router";
 import Header from "../../components/Header/Header";
 import Loader from "../../components/Loader/Loader";
 import { auth } from "../../firebase/FireBase-config";
-import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
-import {createDoc} from "../../firebase/FireBase-services";
-import { User } from "../../Models/Models"; 
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
+import { createDoc } from "../../firebase/FireBase-services";
+import { User } from "../../Models/Models";
 
-import "./Register.css";let userData: User = {}
+import "./Register.css";
+let userData: User = {};
 
 const Register = () => {
   const [regData, setRegData] = useState({
-    name:"",
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -35,7 +39,7 @@ const Register = () => {
     msg: "",
     color: "",
   });
- 
+
   const [showLoader, setShowLoader] = useState({ show: false, msg: "" });
   const history = useHistory();
 
@@ -49,8 +53,7 @@ const Register = () => {
     event.preventDefault();
     try {
       setShowLoader({ show: true, msg: "Registering..." });
-    
-      
+
       if (
         regData.password !== regData.confirmPassword ||
         regData.password === "" ||
@@ -61,11 +64,13 @@ const Register = () => {
         regData.name === ""
       ) {
         let Msg = [];
-        (regData.password !== regData.confirmPassword) && Msg.push("Passwords do not match");
-        (regData.password === "") && Msg.push("Password is required");
-        (regData.email === "") && Msg.push("Email is required");
-        (regData.password.length < 6) && Msg.push("Password must be at least 6 characters");
-        (regData.name === "") && Msg.push("Name is required");
+        regData.password !== regData.confirmPassword &&
+          Msg.push("Passwords do not match");
+        regData.password === "" && Msg.push("Password is required");
+        regData.email === "" && Msg.push("Email is required");
+        regData.password.length < 6 &&
+          Msg.push("Password must be at least 6 characters");
+        regData.name === "" && Msg.push("Name is required");
         setShowToast({
           show: true,
           msg: `${Msg}`,
@@ -86,16 +91,14 @@ const Register = () => {
         // localStorage.setItem("uid", reg?.user.uid);
         // localStorage.setItem("accessToken", reg?.user.refreshToken);
         // localStorage.setItem("auth", "true");
-        userData ={
+        userData = {
           uid: reg.user.uid,
           name: regData.name,
           email: regData.email,
         };
 
+        const regUser = createDoc("users", userData);
 
-        const  regUser = createDoc("users", userData);
-      
-    
         setShowToast({
           show: true,
           msg: "Registered successfully",
@@ -105,15 +108,15 @@ const Register = () => {
         history.push("/login");
       }
 
-      setRegData({name:"", email: "", password: "", confirmPassword: "" });
+      setRegData({ name: "", email: "", password: "", confirmPassword: "" });
     } catch (error) {
-      const err = JSON.parse(JSON.stringify(error))
+      const err = JSON.parse(JSON.stringify(error));
       setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
       setShowLoader({ show: false, msg: "" });
     }
   };
   return (
-    <IonPage id='main'>
+    <IonPage id="main">
       <Header title="Register" />
       <IonContent fullscreen className="ion-padding ion-margin">
         {/* <Toast open={showToast.show} msg={showToast.msg} /> */}
@@ -127,13 +130,15 @@ const Register = () => {
         <Loader open={showLoader.show} msg={showLoader.msg} />
         <IonRow>
           <IonCol size="12" className="ion-text-center">
-          <h1><span className="heading">AJ-Squad</span></h1>
+            <h1>
+              <span className="heading">AJ-Squad</span>
+            </h1>
           </IonCol>
         </IonRow>
         <IonRow>
           <IonCol sizeMd="6" offsetMd="3">
             <IonList>
-            <IonItem>
+              <IonItem>
                 <IonLabel position="floating">Name</IonLabel>
                 <IonInput
                   value={regData.name}

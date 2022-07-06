@@ -86,7 +86,7 @@ export interface OrderBy {
 
 export interface MyWeight {
   uid: string;
-  weight: number;
+  weight: any;
   date: Date;
   createdAt: Timestamp;
 }

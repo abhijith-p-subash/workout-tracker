@@ -91,14 +91,14 @@ const Login = () => {
                 <Loader open={showLoader.show} msg={showLoader.msg} />
                 <IonRow>
                     <IonCol size="12" className="ion-text-center">
-                        <h1>Vrk-Out</h1>
+                        <h1><span className="heading">AJ-Squad</span></h1>
                     </IonCol>
                 </IonRow>
                 <IonRow>
                     <IonCol sizeMd="6" offsetMd="3">
                         <IonList>
                             <IonItem>
-                                <IonLabel position="floating">Username</IonLabel>
+                                <IonLabel position="floating">Email</IonLabel>
                                 <IonInput value={loginData.email} onIonChange={(e) => handleChange(e)} type="email" name="email" required ></IonInput>
                             </IonItem>
                             <IonItem>

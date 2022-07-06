@@ -127,7 +127,7 @@ const Register = () => {
         <Loader open={showLoader.show} msg={showLoader.msg} />
         <IonRow>
           <IonCol size="12" className="ion-text-center">
-            <h1>Vrk-Out</h1>
+          <h1><span className="heading">AJ-Squad</span></h1>
           </IonCol>
         </IonRow>
         <IonRow>

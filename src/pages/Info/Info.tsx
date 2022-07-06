@@ -121,6 +121,7 @@ const Info = () => {
                 </IonRow>
                 <IonRow className="ion-margin">
                     <div>
+                    
                            <IonImg src={workout.url}/>
                     </div>
                 </IonRow>

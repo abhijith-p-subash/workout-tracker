@@ -123,7 +123,7 @@ const EditProfile = () => {
                             <IonSelectOption value="others">Others</IonSelectOption>
                         </IonSelect>
                     </IonItem>
-                    <IonItem>
+                    {/* <IonItem>
                         <IonLabel position="floating">Date of Birth</IonLabel>
                         <IonButtons slot="end">
                             <IonButton onClick={() => setCalenderCtrl(false)} id="open-date-input">
@@ -131,7 +131,7 @@ const EditProfile = () => {
                             </IonButton>
                         </IonButtons>
                         <IonInput type='text' name='dob' value={moment(user.dob).format("L")} onIonChange={(e) => handleChange(e)}></IonInput>
-                    </IonItem>
+                    </IonItem> */}
                     <IonItem>
                         <IonLabel position="floating">Age</IonLabel>
                         <IonInput type='number' name='age' value={user.age} onIonChange={(e) => handleChange(e)}></IonInput>

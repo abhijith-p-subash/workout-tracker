@@ -90,7 +90,9 @@ import {
   deleteOne,
   getAll,
   getWithQueryOrder,
+  getHomeData,
 } from "../../firebase/FireBase-services";
+
 import { Job, chunks, compare } from "../../Job/Job";
 import moment from "moment";
 import Axios from "../../Axios/Axios";
@@ -200,7 +202,7 @@ const Home: React.FC = () => {
     };
 
     setShowLoader({ show: true, msg: "Loading..." });
-    const res: Res = await getWithQueryOrder("myWorkOut", filter, orderBy);
+    const res: Res = await getHomeData("myWorkOut", filter);
 
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
@@ -389,11 +391,11 @@ const Home: React.FC = () => {
               <IonIcon icon={calendarOutline}></IonIcon>
             </IonButton>
           </IonButtons>
-          <IonButtons slot="end">
+          {/* <IonButtons slot="end">
             <IonButton id="watch">
               <IonIcon icon={stopwatchOutline}></IonIcon>
             </IonButton>
-          </IonButtons>
+          </IonButtons> */}
         </IonToolbar>
       </IonHeader>
 
@@ -512,7 +514,7 @@ const Home: React.FC = () => {
 
                         <IonItem key={index} >
                           <IonAvatar slot="start">
-                        
+                   
                             <IonImg src={wrk.url} />
                           </IonAvatar>
                           <IonLabel className="ion-margin-start">
@@ -544,14 +546,16 @@ const Home: React.FC = () => {
             setAddBtn(false);
           }}
           cssClass="my-custom-class"
-          header={`${dataToAlert?.workout.name}`}
-          subHeader={`${dataToAlert?.workout.bodyPart}`}
+          header={capitalize(`${dataToAlert?.workout.name}`)}
+          subHeader={capitalize(`${dataToAlert?.workout.bodyPart}`)}
           inputs={[
+            
             {
               name: "weight",
               type: "number",
               placeholder: "10 Kg",
               label: "Weight",
+              disabled: dataToAlert?.workout.equipment === "body weight"
             },
             {
               name: "rep",
@@ -681,7 +685,7 @@ const Home: React.FC = () => {
                   uid: auth.currentUser?.uid,
                   weight: data.weight,
                   date: moment().format("L"),
-                  createdAt: moment().format(),
+                  createdAt: Timestamp.fromDate(new Date(dateFilter)),
                 });
 
                 if (res.error) {

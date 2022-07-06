@@ -225,7 +225,7 @@ const Profile = () => {
                 ></IonIcon>
                 <IonLabel>{user.gender ? user.gender : "Gender"}</IonLabel>
               </IonItem>
-              <IonItem>
+              {/* <IonItem>
                 <IonIcon
                   className="ion-margin-horizontal"
                   icon={calendarNumber}
@@ -234,7 +234,7 @@ const Profile = () => {
                 <IonLabel>
                   {user.dob ? moment(user.dob).format("L") : "Date of Birth"}
                 </IonLabel>
-              </IonItem>
+              </IonItem> */}
             </div>
           )}
 

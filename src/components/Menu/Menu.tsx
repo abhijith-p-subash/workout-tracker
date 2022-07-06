@@ -34,6 +34,8 @@ import {
 import { Filter, Res, User } from "../../Models/Models";
 import { getWithQuery } from "../../firebase/FireBase-services";
 
+import "./Menu.css"
+
 let user: User = {} as User;
 
 const Menu = (props:any) => {
@@ -98,7 +100,7 @@ const Menu = (props:any) => {
         <IonToolbar color="primary">
         
 
-          <IonItem color="primary">
+          <IonItem className="ion-text-center" color="primary">
             {/* <IonAvatar
               slot="start"
               className="ion-text-center ion-margin-vertical"
@@ -108,7 +110,7 @@ const Menu = (props:any) => {
                 alt=""
               />
             </IonAvatar> */}
-            <IonLabel>WORKOUT TRACKER</IonLabel>
+            <IonLabel ><span className="menu-heading">AJ-Squad</span></IonLabel>
           </IonItem>
         </IonToolbar>
       </IonHeader>

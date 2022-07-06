@@ -17,7 +17,8 @@ import {
   where,
   QueryConstraint,
   orderBy,
-  startAt, endAt,
+  startAt,
+  endAt,
 } from "firebase/firestore";
 import { Filter, GeneralData } from "../Models/Models";
 
@@ -87,7 +88,7 @@ export const getWithQuery = async (collectionName: string, Where: any) => {
     });
 
     const ref = collection(db, collectionName),
-      Query = query(ref, ...filter,);
+      Query = query(ref, ...filter);
     // orderBy("createdAt", "desc")
     const res = await getDocs(Query);
     res.forEach((doc) => {
@@ -97,13 +98,15 @@ export const getWithQuery = async (collectionName: string, Where: any) => {
     });
     return { data: data, error: false };
   } catch (error) {
-
-
     return { data: error, error: true };
   }
 };
 
-export const getWithQueryOrder = async (collectionName: string, Where: any, order: any) => {
+export const getWithQueryOrder = async (
+  collectionName: string,
+  Where: any,
+  order: any
+) => {
   try {
     let data: GeneralData[] = [];
     let filter: QueryConstraint[] = [];
@@ -112,7 +115,7 @@ export const getWithQueryOrder = async (collectionName: string, Where: any, orde
     });
 
     const ref = collection(db, collectionName),
-      Query = query(ref, ...filter, );
+      Query = query(ref, ...filter);
     // orderBy("createdAt", "desc")
     const res = await getDocs(Query);
     res.forEach((doc) => {
@@ -122,13 +125,15 @@ export const getWithQueryOrder = async (collectionName: string, Where: any, orde
     });
     return { data: data, error: false };
   } catch (error) {
-
-
     return { data: error, error: true };
   }
 };
 
-export const update = async (collectionName: string, id: string | any, updateData: any) => {
+export const update = async (
+  collectionName: string,
+  id: string | any,
+  updateData: any
+) => {
   try {
     const ref = doc(db, collectionName, id),
       res = await updateDoc(ref, updateData);
@@ -143,6 +148,29 @@ export const deleteOne = async (collectionName: string, id: string) => {
     const ref = doc(db, collectionName, id),
       res = await deleteDoc(ref);
     return { data: res, error: false };
+  } catch (error) {
+    return { data: error, error: true };
+  }
+};
+
+export const getHomeData = async (collectionName: string, Where: any) => {
+  try {
+    let data: GeneralData[] = [];
+    let filter: QueryConstraint[] = [];
+    Where.forEach((item: Filter) => {
+      filter.push(where(item?.field, item?.operator, item?.value));
+    });
+
+    const ref = collection(db, collectionName),
+      Query = query(ref, ...filter, orderBy("createdAt", "desc"));
+    // orderBy("createdAt", "desc")
+    const res = await getDocs(Query);
+    res.forEach((doc) => {
+      if (doc.exists()) {
+        data.push({ ...doc.data(), id: doc.id });
+      }
+    });
+    return { data: data, error: false };
   } catch (error) {
     return { data: error, error: true };
   }

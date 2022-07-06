@@ -18,12 +18,16 @@ import {
   IonPage,
   IonPopover,
   IonRow,
+  IonSegment,
+  IonSegmentButton,
+  IonSelect,
+  IonSelectOption,
   IonTitle,
   IonToolbar,
   useIonViewWillEnter,
 } from "@ionic/react";
 import React, { useEffect, useState } from "react";
-
+import { Timestamp } from "firebase/firestore";
 import Loader from "../../components/Loader/Loader";
 import { UserData } from "../../assets/data/seed";
 import { Bar, Line, Radar, Scatter } from "react-chartjs-2";
@@ -31,12 +35,26 @@ import { Chart, registerables } from "chart.js";
 import { Chart as ChartJS } from "chart.js/auto";
 import { calendarOutline } from "ionicons/icons";
 import moment from "moment";
-import { Filter, MyWorkOut, OrderBy, Res, Set } from "../../Models/Models";
+import {
+  Filter,
+  MyWeight,
+  MyWorkOut,
+  OrderBy,
+  Res,
+  Set,
+} from "../../Models/Models";
 import { auth } from "../../firebase/FireBase-config";
-import { getWithQueryOrder } from "../../firebase/FireBase-services";
+import {
+  getWithQuery,
+  getWithQueryOrder,
+} from "../../firebase/FireBase-services";
+import { bodyPart } from "../../Seeder/BodyPart";
+import { capitalize } from "../../Util/Util";
 
-let myWrkOut: MyWorkOut[] = [];
-let wrkOut: any = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+let myWrkOut: MyWeight[] = [],
+  myWrkOut1: MyWorkOut[] = [],
+  wrkOut: any = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  wrkOut1: any = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   labels = [
     "January",
     "February",
@@ -45,14 +63,17 @@ let wrkOut: any = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     "May",
     "June",
     "July",
-    " August",
+    "August",
     "September",
     "October",
     "November",
     "December",
-  ];
+  ],
+  goal = 0;
 
 const Progress = () => {
+  const [segment, setSegment] = useState("lift" || undefined);
+  const [bPart, setBPart] = useState("back");
   const [showLoader, setShowLoader] = useState({ show: false, msg: "" || {} });
   const [dateRange, setDateRange] = useState({
     $gte: moment().subtract(30, "d").format(),
@@ -80,8 +101,24 @@ const Progress = () => {
     ],
   };
 
+  const barChartData1 = {
+    labels: labels,
+    datasets: [
+      {
+        label: "weight",
+        backgroundColor: "rgba(255, 36, 36, 0.699)",
+        borderColor: "rgba(255, 36, 36, 0.699)",
+        borderWidth: 2,
+        hoverBackgroundColor: "rgba(255, 36, 127, 0.699)",
+        hoverBorderColor: "rgba(255, 36, 127, 0.699)",
+        data: wrkOut1,
+      },
+    ],
+  };
+
   useIonViewWillEnter(() => {
     handleSubmit();
+    handleWeightLift({}, "back");
   }, []);
 
   const handleChange = (event: any) => {
@@ -93,9 +130,10 @@ const Progress = () => {
 
   const handleSubmit = async () => {
     // event.preventDefault();
- 
     setShowLoader({ show: true, msg: "Loading..." });
     const UID = await localStorage.getItem("uid");
+    let kg: number = 0,
+      avg = 0;
     myWrkOut = [];
     let filter: Filter[] = [
       {
@@ -107,35 +145,111 @@ const Progress = () => {
 
     // let orderBy: OrderBy = {
     //   field: "createdAt",
-    //   direction: "desc",
-    //   startAt: new Date(dateRange.$gte),
-    //   endAt: new Date(dateRange.$lte),
+    //   direction: "desc ",
+    //   startAt: Timestamp.fromDate(new Date(dateRange.$gte)),
+    //   endAt: Timestamp.fromDate(new Date(dateRange.$lte)),
     // };
 
+    let orderBy: OrderBy = {
+      field: "createdAt",
+      direction: "desc ",
+      startAt: Timestamp.fromDate(
+        new Date(moment().startOf("year").format("MM/DD/YYYY"))
+      ),
+      endAt: Timestamp.fromDate(
+        new Date(moment().endOf("year").format("MM/DD/YYYY"))
+      ),
+    };
+
     setShowLoader({ show: true, msg: "Loading..." });
-    const res: Res = await getWithQueryOrder("myWorkOut", filter, {});
+
+    const user: Res = await getWithQuery("users", filter);
+    const res: Res = await getWithQueryOrder("myWeight", filter, orderBy);
+    if (res.error) {
+      const err = JSON.parse(JSON.stringify(res.data));
+      setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
+      setShowLoader({ show: false, msg: "" });
+    } else {
+      res.data.forEach((doc: MyWeight, index: number) => {
+        myWrkOut.push(doc);
+      });
+      goal = parseInt(user.data[0].height) - 100;
+
+      labels.forEach((month, index) => {
+        let filterArr = myWrkOut.filter((wrk) => {
+          let m = moment(new Date(wrk.createdAt.toDate()));
+          console.log(m.month());
+
+          return m.month() - 1 === index;
+        });
+
+        filterArr.forEach((doc, index: number) => {
+          kg = kg + parseInt(doc.weight);
+        });
+        avg = kg / filterArr.length;
+        wrkOut[index] = avg;
+      });
+
+      setShowToast({ show: true, msg: "Workout Added", color: "success" });
+      setShowLoader({ show: false, msg: "" });
+    }
+  };
+
+  const handleWeightLift = async (e: any, param: string) => {
+    wrkOut1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    setShowLoader({ show: true, msg: "Loading..." });
+    setBPart(param === "" ? e.target.value : param);
+    console.log(bPart);
+
+    myWrkOut1 = [];
+    let filter: Filter[] = [
+      {
+        field: "uid",
+        operator: "==",
+        value: auth.currentUser?.uid || localStorage.getItem("uid"),
+      },
+    ];
+
+    let orderBy: OrderBy = {
+      field: "createdAt",
+      direction: "desc ",
+      startAt: Timestamp.fromDate(
+        new Date(moment().startOf("year").format("MM/DD/YYYY"))
+      ),
+      endAt: Timestamp.fromDate(
+        new Date(moment().endOf("year").format("MM/DD/YYYY"))
+      ),
+    };
+
+    setShowLoader({ show: true, msg: "Loading..." });
+    const res: Res = await getWithQueryOrder("myWorkOut", filter, orderBy);
     if (res.error) {
       const err = JSON.parse(JSON.stringify(res.data));
       setShowToast({ show: true, msg: `${err.code}`, color: "danger" });
       setShowLoader({ show: false, msg: "" });
     } else {
       res.data.forEach((doc: MyWorkOut, index: number) => {
-        myWrkOut.push(doc);
+        myWrkOut1.push(doc);
       });
-     
 
-      myWrkOut.forEach((doc: MyWorkOut, index: number) => {
+      let filterArr = myWrkOut1.filter((wrk) => {
+        return wrk.workout.bodyPart === (param === "" ? e.target.value : param);
+      });
+
+      filterArr.forEach((doc: MyWorkOut, index: number) => {
         let kg: number = 0;
         let oldKg: number = 0;
-        // let m = new Date(doc.createdAt);
-        let m = new Date();
+        let m = moment(new Date(doc.createdAt.toDate()));
+
         doc.set.forEach((set: Set, index: number) => {
           kg += parseInt(set.weight);
         });
-        oldKg = wrkOut[m.getMonth()];
+
+        oldKg = wrkOut1[m.month()];
         oldKg += kg;
-        wrkOut[m.getMonth()] = oldKg;
+        wrkOut1[m.month()] = oldKg;
       });
+
       setShowToast({ show: true, msg: "Workout Added", color: "success" });
       setShowLoader({ show: false, msg: "" });
     }
@@ -190,8 +304,8 @@ const Progress = () => {
           />
         </IonPopover>
         {/* ****************TO CALENDER POPOVER **************************/}
-
-        {/* <IonCard>
+        {/* 
+        <IonCard>
           <IonCardContent>
             <IonAccordionGroup>
               <IonAccordion value="colors">
@@ -249,10 +363,11 @@ const Progress = () => {
                     <IonCol>
                       <IonButton
                         size="small"
-                        type="submit"
+                        // type="submit"
                         // onClick={(e) => handleSubmit(e)}
                         expand="block"
                         color="primary"
+                        onClick={()=>handleSubmit()}
                       >
                         {" "}
                         Apply
@@ -264,11 +379,11 @@ const Progress = () => {
                         expand="block"
                         color="primary"
                         fill="outline"
-                        onClick={(e) =>
+                        onClick={() =>{
                           setDateRange({
                             $gte: moment().subtract(7, "d").format(),
                             $lte: moment().format(),
-                          })
+                          }); handleSubmit()}
                         }
                       >
                         {" "}
@@ -281,31 +396,105 @@ const Progress = () => {
             </IonAccordionGroup>
           </IonCardContent>
         </IonCard> */}
-
-        <IonCard className="ion-margin-vertical">
-          <IonCardContent>
-            <IonItem>
-              <IonLabel>tres</IonLabel>
-              <Line
-                height={250}
-                data={barChartData}
-                options={{ maintainAspectRatio: true }}
-              />
+    <div style={{marginTop:20}}>
+    <IonSegment
+          value={segment}
+          select-on-focus
+          swipeGesture
+          onIonChange={(e) => {
+            setSegment(`${e.detail.value}`);
+          }}
+        >
+          <IonSegmentButton value="lift">
+            <IonLabel>WEIGHT LIFT</IonLabel>
+          </IonSegmentButton>
+          <IonSegmentButton value="lose">
+            <IonLabel>WEIGHT LOSE</IonLabel>
+          </IonSegmentButton>
+        </IonSegment>
+        {segment === "lift" && (
+          <div className="ion-margin-vertical ion-content">
+            <IonItem className="ion-margin">
+              <IonSelect
+                interface="action-sheet"
+                placeholder="Back"
+                // value={bPart}
+                onIonChange={(e) => {
+                  handleWeightLift(e, "");
+                }}
+              >
+                {bodyPart.map((item: string, index: number) => (
+                  <IonSelectOption key={index} value={item}>
+                    {capitalize(item)}
+                  </IonSelectOption>
+                ))}
+              </IonSelect>
             </IonItem>
-          </IonCardContent>
-        </IonCard>
 
-        <IonCard className="ion-margin-vertical">
-          <IonCardContent>
-            <IonItem>
-              <IonLabel>tres</IonLabel>
-              <Radar
-                data={barChartData}
-                options={{ maintainAspectRatio: true }}
-              />
-            </IonItem>
-          </IonCardContent>
-        </IonCard>
+            <IonCard className="ion-margin-vertical">
+              <IonCardContent>
+                <IonItem>
+                  <IonLabel>tres</IonLabel>
+                  <Line
+                    height={250}
+                    data={barChartData1}
+                    options={{ maintainAspectRatio: true }}
+                  />
+                </IonItem>
+              </IonCardContent>
+            </IonCard>
+
+            <IonCard className="ion-margin-vertical">
+              <IonCardContent>
+                <IonItem>
+                  <IonLabel>tres</IonLabel>
+                  <Radar
+                    data={barChartData1}
+                    options={{ maintainAspectRatio: true }}
+                  />
+                </IonItem>
+              </IonCardContent>
+            </IonCard>
+          </div>
+        )}
+
+        {segment === "lose" && (
+          <div className="ion-margin-vertical" color="medium">
+            <IonCard color="light">
+              <IonCardContent className="ion-text-center goal">
+                <IonLabel className="ion-text-center ion-text-uppercase">
+                  YOUR GOAL
+                </IonLabel>
+                <p> {goal} Kg </p>
+              </IonCardContent>
+            </IonCard>
+            <IonCard className="ion-margin-vertical">
+              <IonCardContent>
+                <IonItem>
+                  <IonLabel>tres</IonLabel>
+                  <Line
+                    height={250}
+                    data={barChartData}
+                    options={{ maintainAspectRatio: true }}
+                  />
+                </IonItem>
+              </IonCardContent>
+            </IonCard>
+
+            <IonCard className="ion-margin-vertical">
+              <IonCardContent>
+                <IonItem>
+                  <IonLabel>tres</IonLabel>
+                  <Radar
+                    data={barChartData}
+                    options={{ maintainAspectRatio: true }}
+                  />
+                </IonItem>
+              </IonCardContent>
+            </IonCard>
+          </div>
+        )}
+    </div>
       </IonContent>
     </IonPage>
   );

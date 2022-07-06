@@ -64,21 +64,6 @@ const App: React.FC = () => {
         <AuthGurad auth={isAuthenticated} path="/bmi-calculator" component={Calculator} />
         <AuthGurad auth={isAuthenticated} path="/progress" component={Progress} /> */}
         
-
-{/* <Route
-  exact
-  path="/home"
-  render={(props) => {
-    return isAuthenticated ? <Home /> : <Redirect to="/login" />;
-  }}
-/>
-<Route
-  exact
-  path="/"
-  render={(props) => {
-    return isAuthenticated ? <Home /> : <Redirect to="/login" />;
-  }}
-/> */}
         <Route exact path="/home" ><Home/></Route>
         <Route exact path="/">{auth.currentUser?.uid ? <Redirect to="/home" /> :<Redirect to="/login" />}</Route>
         <Route exact path="/info/:id"> <Info /></Route>

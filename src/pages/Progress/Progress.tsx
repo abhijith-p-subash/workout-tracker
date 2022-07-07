@@ -196,6 +196,20 @@ const Progress = () => {
         operator: "==",
         value: auth.currentUser?.uid || localStorage.getItem("uid"),
       },
+      // {
+      //   field: "createdAt",
+      //   operator: "<",
+      //   value: Timestamp.fromDate(
+      //     new Date(moment().endOf("year").format())
+      //   ),
+      // },
+      // {
+      //   field: "createdAt",
+      //   operator: ">",
+      //   value: Timestamp.fromDate(
+      //     new Date(moment().startOf("year").format())
+      //   ),
+      // },
     ];
 
     let orderBy: OrderBy = {
@@ -223,6 +237,9 @@ const Progress = () => {
       let filterArr = myWrkOut1.filter((wrk) => {
         return wrk.workout.bodyPart === (param === "" ? e.target.value : param);
       });
+
+ 
+      
 
       filterArr.forEach((doc: MyWorkOut, index: number) => {
         let kg: number = 0;

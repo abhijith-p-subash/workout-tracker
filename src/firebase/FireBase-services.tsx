@@ -1,7 +1,5 @@
 import { auth, db } from "./FireBase-config";
-import {
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import {
   collection,
   addDoc,
@@ -15,6 +13,8 @@ import {
   where,
   QueryConstraint,
   orderBy,
+  startAt,
+  endAt,
 } from "firebase/firestore";
 import { Filter, GeneralData } from "../Models/Models";
 
@@ -104,14 +104,19 @@ export const getWithQueryOrder = async (
   order: any
 ) => {
   try {
-    let data: GeneralData[] = [];
-    let filter: QueryConstraint[] = [];
+    let data: GeneralData[] = [],
+      filter: QueryConstraint[] = [];
     Where.forEach((item: Filter) => {
       filter.push(where(item?.field, item?.operator, item?.value));
     });
 
+
+
     const ref = collection(db, collectionName),
-      Query = query(ref, ...filter, order);
+      Query = query(
+        ref,
+        ...filter,
+      );
     // orderBy("createdAt", "desc")
     const res = await getDocs(Query);
     res.forEach((doc) => {
